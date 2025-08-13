@@ -1,4 +1,4 @@
-# Galactic4X
+# Archigebra
 Master ur planchbuild
 
 ## Issues, questions, and feedback
