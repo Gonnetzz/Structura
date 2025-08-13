@@ -38,8 +38,9 @@ Root =
 {
 	Name = "ControlPanel",
 	Angle = 0,
-	Pivot = { 0, -0.57 },
+	Pivot = { 0, -0.23},
 	PivotOffset = { 0, 0 },
+	Scale = 0.4,
 	Sprite = "control_panel-base",
 
 	ChildrenInFront =
