@@ -1,4 +1,4 @@
-table.insert(Sprites, ButtonSprite("lead_context", "det/lead_Bud", nil, nil, nil, nil, path))
+table.insert(Sprites, ButtonSprite("lead_context", "context/lead_mat", nil, nil, nil, nil, path))
 table.insert(Sprites, DetailSprite("lead_detail", "lead_det", path))
 
 table.insert(Sprites,
@@ -6,10 +6,10 @@ table.insert(Sprites,
     Name = "lead_icon",
     States =
     {
-        Normal = { Frames = {{ texture = path .. "/ui/textures/det/lead_mat-A.tga", bottom = 0.664 },},},
-        Rollover = { Frames = {{ texture = path .. "/ui/textures/det/lead_mat-R.tga", bottom = 0.664 },},},
-        Pressed = { Frames = {{ texture = path .. "/ui/textures/det/lead_mat-S.tga", bottom = 0.664 },},},
-        Disabled = { Frames = {{ texture = path .. "/ui/textures/det/lead_mat-D.tga", bottom = 0.664 },},},
+        Normal =   { Frames = {{ texture = path .. "/ui/textures/HUD/lead_mat-A.tga", bottom = 0.664 },},},
+        Rollover = { Frames = {{ texture = path .. "/ui/textures/HUD/lead_mat-R.tga", bottom = 0.664 },},},
+        Pressed =  { Frames = {{ texture = path .. "/ui/textures/HUD/lead_mat-S.tga", bottom = 0.664 },},},
+        Disabled = { Frames = {{ texture = path .. "/ui/textures/HUD/lead_mat-D.tga", bottom = 0.664 },},},
     },
 })
 
