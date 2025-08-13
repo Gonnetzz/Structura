@@ -1,13 +1,7 @@
 # Ignore files
 *.blend
+*.fbx
 
 # Ignore folder
 .vs/
-x64/
-bg1/
-bg/
-deprecated/
-new_items1/
-v1/
-out/
-**/brace_data/
+src/
