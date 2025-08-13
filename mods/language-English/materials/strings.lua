@@ -4,4 +4,7 @@ Merge(Material,
 {
 	lead = L"Lead",
 	leadTip2 = L"Used in multi-tile structures",
+
+    uran = L"Uranium",
+    uranTip2 = L"Used in multi-tile structures",
 })
