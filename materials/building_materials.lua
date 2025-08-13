@@ -1,5 +1,7 @@
 table.insert(Sprites, ButtonSprite("lead_context", "context/lead_mat", nil, nil, nil, nil, path))
 table.insert(Sprites, DetailSprite("lead_detail", "lead_det", path))
+table.insert(Sprites, ButtonSprite("uran_context", "context/lead_mat", nil, nil, nil, nil, path))
+table.insert(Sprites, DetailSprite("uran_detail", "lead_det", path))
 
 table.insert(Sprites,
 {
@@ -32,6 +34,78 @@ table.insert(Sprites,
         },
     },
 })
+table.insert(Sprites, 
+{
+    Name = "uran_strut",
+    States =
+    {
+        Normal =
+        {
+            Frames =
+            {
+                { texture = path .. "/materials/uran/0001.png" },
+                { texture = path .. "/materials/uran/0002.png" },
+                { texture = path .. "/materials/uran/0003.png" },
+                { texture = path .. "/materials/uran/0004.png" },
+                { texture = path .. "/materials/uran/0005.png" },
+                { texture = path .. "/materials/uran/0006.png" },
+                { texture = path .. "/materials/uran/0007.png" },
+                { texture = path .. "/materials/uran/0008.png" },
+                { texture = path .. "/materials/uran/0009.png" },
+                { texture = path .. "/materials/uran/0010.png" },
+                { texture = path .. "/materials/uran/0011.png" },
+                { texture = path .. "/materials/uran/0012.png" },
+                { texture = path .. "/materials/uran/0013.png" },
+                { texture = path .. "/materials/uran/0014.png" },
+                { texture = path .. "/materials/uran/0015.png" },
+                { texture = path .. "/materials/uran/0016.png" },
+				
+                duration = 0.1,
+				blendColour = false,
+				blendCoordinates = false,
+				mipmap = true,
+				repeatS = true,
+            },
+			NextState = "Normal",
+        },
+    },
+})
+table.insert(Sprites, 
+{
+    Name = "uran_strut2",
+    States =
+    {
+        Normal =
+        {
+            Frames =
+            {
+                { texture = path .. "/materials/uran2/0001.png" },
+                { texture = path .. "/materials/uran2/0002.png" },
+                { texture = path .. "/materials/uran2/0003.png" },
+                { texture = path .. "/materials/uran2/0004.png" },
+                { texture = path .. "/materials/uran2/0005.png" },
+                { texture = path .. "/materials/uran2/0006.png" },
+                { texture = path .. "/materials/uran2/0007.png" },
+                { texture = path .. "/materials/uran2/0008.png" },
+                { texture = path .. "/materials/uran2/0009.png" },
+                { texture = path .. "/materials/uran2/0010.png" },
+                { texture = path .. "/materials/uran2/0011.png" },
+                { texture = path .. "/materials/uran2/0012.png" },
+                { texture = path .. "/materials/uran2/0013.png" },
+                { texture = path .. "/materials/uran2/0014.png" },
+                { texture = path .. "/materials/uran2/0015.png" },
+                { texture = path .. "/materials/uran2/0016.png" },
+				
+                duration = 0.1,
+				blendColour = false,
+				blendCoordinates = false,
+				mipmap = true,
+				repeatS = true,
+            },
+			NextState = "Normal",
+        },
+    },
+})
 
 armour = FindMaterial("armour")
 
@@ -42,6 +116,63 @@ table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 	Detail = "lead_detail",
 	Sprite = "lead_strut",
 	Context = "lead_context",
+	Stiffness = 320000,
+	MaxCompression = 0.95,
+	MaxExpansion = 1.05,
+	Mass = 0.25,
+	HitPoints = 350,
+	AbsorptionMomentumThreshold = 0,
+	ReflectionMomentumThreshold = 800,
+	PenetrationMomentumThreshold = 2000,
+	BeamPenetrationBlockDist = 120,
+	MetalBuildCost = 0.9,
+	MetalRepairCost = 0.9,
+	MetalReclaim = 0.5,
+	EnergyBuildCost = 0.75,
+	EnergyRepairCost = 0.75,
+	BuildTime = 6,
+	ScrapTime = 2,
+	BuildEffect = "effects/build_armor.lua",
+	DestroyEffect = "effects/armor_destroy.lua",
+	FullExtrusion = true,
+}))
+
+table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
+{
+	SaveName = "uran",
+	Icon = "lead_icon",
+	Detail = "lead_detail",
+	Sprite = "uran_strut",
+	Context = "lead_context",
+	KeySpriteByDamage = false,
+	Stiffness = 320000,
+	MaxCompression = 0.95,
+	MaxExpansion = 1.05,
+	Mass = 0.25,
+	HitPoints = 350,
+	AbsorptionMomentumThreshold = 0,
+	ReflectionMomentumThreshold = 800,
+	PenetrationMomentumThreshold = 2000,
+	BeamPenetrationBlockDist = 120,
+	MetalBuildCost = 0.9,
+	MetalRepairCost = 0.9,
+	MetalReclaim = 0.5,
+	EnergyBuildCost = 0.75,
+	EnergyRepairCost = 0.75,
+	BuildTime = 6,
+	ScrapTime = 2,
+	BuildEffect = "effects/build_armor.lua",
+	DestroyEffect = "effects/armor_destroy.lua",
+	FullExtrusion = true,
+}))
+table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
+{
+	SaveName = "uran2",
+	Icon = "lead_icon",
+	Detail = "lead_detail",
+	Sprite = "uran_strut2",
+	Context = "lead_context",
+	KeySpriteByDamage = false,
 	Stiffness = 320000,
 	MaxCompression = 0.95,
 	MaxExpansion = 1.05,
