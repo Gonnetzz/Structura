@@ -45,11 +45,22 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	},
 })
 
-local controlPanelUpgrade = DeepCopy(FindDevice("control_panel"))
+local controlPanel = FindDevice("control_panel")
+local controlPanelUpgrade = DeepCopy(controlPanel)
 if controlPanelUpgrade then
     controlPanelUpgrade.SaveName = "control_panel_upgrade"
     controlPanelUpgrade.FileName = path .. "/devices/control_panel_upgrade.lua"
     controlPanelUpgrade.Enabled = false
-    controlPanelUpgrade.Upgrades = {}
+   
+    controlPanelUpgrade.Upgrades =
+    {
+        {
+            Enabled = true,
+            SaveName = "control_panel",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+        },
+    }
     table.insert(Devices, controlPanelUpgrade)
 end
