@@ -1,6 +1,8 @@
 # Ignore files
 *.blend
 *.fbx
+*.py
+*.txt
 
 # Ignore folder
 .vs/

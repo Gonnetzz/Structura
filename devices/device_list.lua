@@ -33,4 +33,23 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
 	SelectEffect = "ui/hud/devices/ui_devices",
+	Upgrades =
+	{
+		{
+			Enabled = true,
+			SaveName = "control_panel_upgrade",
+			MetalCost = 10,
+			EnergyCost = 10,
+			BuildDuration = 1,
+		},
+	},
 })
+
+local controlPanelUpgrade = DeepCopy(FindDevice("control_panel"))
+if controlPanelUpgrade then
+    controlPanelUpgrade.SaveName = "control_panel_upgrade"
+    controlPanelUpgrade.FileName = path .. "/devices/control_panel_upgrade.lua"
+    controlPanelUpgrade.Enabled = false
+    controlPanelUpgrade.Upgrades = {}
+    table.insert(Devices, controlPanelUpgrade)
+end
