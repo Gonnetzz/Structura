@@ -23,17 +23,6 @@ BlockPenetration = false
 dofile("effects/device_smoke.lua")
 SmokeEmitter = StandardDeviceSmokeEmitter
 
-Sprites =
-{
-	{
-		Name = "control_panel-base",
-		States =
-		{
-			Normal = { Frames = { { texture = path .. "/devices/ControlPanel.tga" }, mipmap = true, }, },
-		},
-	},
-}
-
 Root =
 {
 	Name = "ControlPanel",
