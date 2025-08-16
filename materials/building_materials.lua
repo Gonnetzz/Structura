@@ -2,6 +2,8 @@ table.insert(Sprites, ButtonSprite("lead_context", "context/lead_mat", nil, nil,
 table.insert(Sprites, DetailSprite("lead_detail", "lead_det", path))
 table.insert(Sprites, ButtonSprite("uran_context", "context/lead_mat", nil, nil, nil, nil, path))
 table.insert(Sprites, DetailSprite("uran_detail", "lead_det", path))
+table.insert(Sprites, ButtonSprite("testmat_context", "context/test_mat", nil, nil, nil, nil, path))
+table.insert(Sprites, DetailSprite("testmat_detail", "test_det", path))
 
 table.insert(Sprites,
 {
@@ -14,6 +16,19 @@ table.insert(Sprites,
         Disabled = { Frames = {{ texture = path .. "/ui/textures/HUD/lead_mat-D.tga", bottom = 0.664 },},},
     },
 })
+table.insert(Sprites,
+{
+	Name = "testmat_icon",
+	States =
+	{
+		Normal   = { Frames = {{ texture = path .. "/ui/textures/HUD/test_mat-A.tga", bottom = 0.664 },},},
+		Rollover = { Frames = {{ texture = path .. "/ui/textures/HUD/test_mat-R.tga", bottom = 0.664 },},},
+		Pressed  = { Frames = {{ texture = path .. "/ui/textures/HUD/test_mat-S.tga", bottom = 0.664 },},},
+		Disabled = { Frames = {{ texture = path .. "/ui/textures/HUD/test_mat-D.tga", bottom = 0.664 },},},
+	},
+})
+
+
 
 table.insert(Sprites, 
 {
@@ -33,6 +48,25 @@ table.insert(Sprites,
             },
         },
     },
+})
+table.insert(Sprites, 
+{
+	Name = "testmat_strut",
+	States =
+	{
+		Normal =
+		{
+			Frames =
+			{
+				{ texture = path .. "/materials/test.tga", duration = 0.3 },
+				{ texture = path .. "/materials/test.tga", duration = 0.2 },
+				{ texture = path .. "/materials/test.tga", duration = 0.2 },
+				{ texture = path .. "/materials/test.tga", duration = 0.3 },
+				mipmap = true,
+				repeatS = true,
+			},
+		},
+	},
 })
 table.insert(Sprites, 
 {
@@ -107,8 +141,20 @@ table.insert(Sprites,
     },
 })
 
+
+bracing = FindMaterial("bracing")
 armour = FindMaterial("armour")
 
+table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(bracing,
+{
+	SaveName = "test_material",
+	Icon = "testmat_icon",
+	Detail = "testmat_detail",
+	Sprite = "testmat_strut",
+	Context = "testmat_context",
+	Enabled = false,
+	ShowInEditor = true,
+}))
 table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 {
 	SaveName = "lead",
