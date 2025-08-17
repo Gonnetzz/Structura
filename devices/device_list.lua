@@ -52,12 +52,12 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	Icon = "hud-test-device-icon",
 	Detail = "hud-detail-test-device",
 	Prerequisite = "upgrade",
-	BuildTimeComplete = 1,
-	ScrapPeriod = 1,
-	MetalCost = 1,
-	EnergyCost = 1,
-	MetalRepairCost = 1,
-	EnergyRepairCost = 1,
+	BuildTimeComplete = 30,
+	ScrapPeriod = 8,
+	MetalCost = 150,
+	EnergyCost = 600,
+	MetalRepairCost = 150,
+	EnergyRepairCost = 600,
 	MetalReclaimMin = 0,
 	MetalReclaimMax = 0,
 	EnergyReclaimMin = 0,
@@ -65,8 +65,6 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
-	Enabled = true,
-	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades =
 	{
@@ -104,7 +102,7 @@ local testdevice = FindDevice("test_device")
 local testdeviceUpgrade = DeepCopy(test_device)
 if testdeviceUpgrade then
     testdeviceUpgrade.SaveName = "test_device_upgrade"
-    testdeviceUpgrade.FileName = path .. "/devices/control_panel_upgrade.lua"
+    testdeviceUpgrade.FileName = path .. "/devices/test_device_upgrade.lua"
     testdeviceUpgrade.Enabled = false
    
     testdeviceUpgrade.Upgrades =
