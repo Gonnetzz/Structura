@@ -45,9 +45,29 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	},
 })
 
+local controlPanel = FindDevice("control_panel")
+local controlPanelUpgrade = DeepCopy(controlPanel)
+if controlPanelUpgrade then
+    controlPanelUpgrade.SaveName = "control_panel_upgrade"
+    controlPanelUpgrade.FileName = path .. "/devices/control_panel_upgrade.lua"
+    controlPanelUpgrade.Enabled = false
+   
+    controlPanelUpgrade.Upgrades =
+    {
+        {
+            Enabled = true,
+            SaveName = "control_panel",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+        },
+    }
+    table.insert(Devices, controlPanelUpgrade)
+end
+
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
 {
-	SaveName = "test_device",
+	SaveName = "ttest_device",
 	FileName = path .. "/devices/test_device.lua",
 	Icon = "hud-test-device-icon",
 	Detail = "hud-detail-test-device",
@@ -70,7 +90,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	{
 		{
 			Enabled = true,
-			SaveName = "test_device_upgrade",
+			SaveName = "ttest_device_upgrade",
 			MetalCost = 10,
 			EnergyCost = 10,
 			BuildDuration = 1,
@@ -78,38 +98,18 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	},
 })
 
-local controlPanel = FindDevice("control_panel")
-local controlPanelUpgrade = DeepCopy(controlPanel)
-if controlPanelUpgrade then
-    controlPanelUpgrade.SaveName = "control_panel_upgrade"
-    controlPanelUpgrade.FileName = path .. "/devices/control_panel_upgrade.lua"
-    controlPanelUpgrade.Enabled = false
-   
-    controlPanelUpgrade.Upgrades =
-    {
-        {
-            Enabled = true,
-            SaveName = "control_panel",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-        },
-    }
-    table.insert(Devices, controlPanelUpgrade)
-end
-
-local testdevice = FindDevice("test_device")
+local testdevice = FindDevice("ttest_device")
 local testdeviceUpgrade = DeepCopy(test_device)
 if testdeviceUpgrade then
-    testdeviceUpgrade.SaveName = "test_device_upgrade"
-    testdeviceUpgrade.FileName = path .. "/devices/test_device_upgrade.lua"
+    testdeviceUpgrade.SaveName = "ttest_device_upgrade"
+    testdeviceUpgrade.FileName = path .. "/devices/ttest_device_upgrade.lua"
     testdeviceUpgrade.Enabled = false
    
     testdeviceUpgrade.Upgrades =
     {
         {
             Enabled = true,
-            SaveName = "test_device",
+            SaveName = "ttest_device",
             MetalCost = 0,
             EnergyCost = 0,
             BuildDuration = 0.1,
