@@ -89,7 +89,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
-	Enabled = false,
+	--Enabled = false,
 	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades =
