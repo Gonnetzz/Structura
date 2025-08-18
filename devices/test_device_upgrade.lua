@@ -23,17 +23,6 @@ BlockPenetration = false
 dofile("effects/device_smoke.lua")
 SmokeEmitter = StandardDeviceSmokeEmitter
 
-Sprites =
-{
-	{
-		Name = "test_device-base",
-		States =
-		{
-			Normal = { Frames = { { texture = path .. "/devices/TestDevice.tga" }, mipmap = true, }, },
-		},
-	},
-}
-
 Root =
 {
 	Name = "TestDevice",
