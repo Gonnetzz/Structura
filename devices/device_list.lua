@@ -44,7 +44,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 			MetalCost = 10,
 			EnergyCost = 10,
 			BuildDuration = 1,
-			Button = "hud-upgrade-test",
+			Button = "hud-upgrade-log",
 		},
 	},
 })
@@ -64,7 +64,7 @@ if controlPanelUpgrade then
             MetalCost = 0,
             EnergyCost = 0,
             BuildDuration = 0.1,
-			Button = "hud-upgrade-test",
+			Button = "hud-upgrade-log",
         },
     }
     table.insert(Devices, controlPanelUpgrade)
