@@ -78,6 +78,17 @@ function GenerateStructureDefinitionString(deviceId)
     Log("------------------------------------")
 end
 
+function DelayedCreateDevice(teamId, saveName, fromId, toId, tValue)
+    if NodeExists(fromId) and NodeExists(toId) then
+        local result = CreateDevice(teamId, saveName, fromId, toId, tValue)
+        if result < 0 then
+            Log("Delayed creation of device '" .. saveName .. "' failed. Error code: " .. result)
+        end
+    else
+        Log("Delayed creation of device '" .. saveName .. "' cancelled: one of the nodes was destroyed.")
+    end
+end
+
 function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
     Log("CreateStructureFromDefinition: deviceId="..deviceId.." teamId="..teamId)
 
@@ -135,12 +146,15 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
             local fromId = nodeMap[dev.onLink.from]
             local toId = nodeMap[dev.onLink.to]
             if fromId and toId then
-                local result = CreateDevice(teamId, dev.saveName, fromId, toId, dev.t or -1)
+				ScheduleCall(5, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
+			--[[
+                local result = CreateDevice(teamId, dev.saveName, fromId, toId, dev.t or 0.5)
                 if not result then
                     Log("Failed to create device: "..dev.saveName)
                 end
             else
                 Log("Error: Device nodes not found for "..tostring(dev.saveName))
+				--]]
             end
         end
     end
