@@ -25,17 +25,13 @@ function MirrorStructureDefinition(def)
         links = {},
         requiredDevices = {}
     }
-
     local nodeNameSwap = { A = "B", B = "A" }
-
     for _, link in ipairs(def.links) do
         local newFrom = nodeNameSwap[link.from] or link.from
         local newTo = nodeNameSwap[link.to] or link.to
-        
         local newAngle = 180 - link.angle
         if newAngle > 180 then newAngle = newAngle - 360 end
         if newAngle < -180 then newAngle = newAngle + 360 end
-
         table.insert(mirrored.links, {
             from = newFrom,
             to = newTo,
@@ -44,7 +40,6 @@ function MirrorStructureDefinition(def)
             angle = newAngle
         })
     end
-
     if def.requiredDevices then
         for _, dev in ipairs(def.requiredDevices) do
             local newDevFrom = nodeNameSwap[dev.onLink.from] or dev.onLink.from
@@ -61,7 +56,6 @@ end
 
 function CheckStructureWithTeam(teamId, deviceId, structureDefinition)
     Log("CheckStructureWithTeam: TeamId="..teamId.." DeviceId="..deviceId)
-
     local primaryDef, secondaryDef
     if teamId == 1 then
         primaryDef = structureDefinition
@@ -71,21 +65,21 @@ function CheckStructureWithTeam(teamId, deviceId, structureDefinition)
         secondaryDef = structureDefinition
     end
 
-    local success, reason, failingNodeId, failingLinkDef, nodeMap = CheckStructure(deviceId, primaryDef)
+    local success, structureData = CheckStructure(deviceId, primaryDef)
     if success then
         Log("Structure matched (primary).")
-        return true
+        return true, structureData
     else
         Log("Primary check failed, trying secondary...")
-        LogFailureDetails(reason, failingNodeId, failingLinkDef, nodeMap)
-        local success2, reason2, failingNodeId2, failingLinkDef2, nodeMap2 = CheckStructure(deviceId, secondaryDef)
+        LogFailureDetails(structureData.reason, structureData.failingNodeId, structureData.failingLinkDef, structureData.nodeMap)
+        local success2, structureData2 = CheckStructure(deviceId, secondaryDef)
         if success2 then
             Log("Structure matched (secondary).")
-            return true
+            return true, structureData2
         else
             Log("Secondary also failed.")
-            LogFailureDetails(reason2, failingNodeId2, failingLinkDef2, nodeMap2)
-            return false
+            LogFailureDetails(structureData2.reason, structureData2.failingNodeId, structureData2.failingLinkDef, structureData2.nodeMap)
+            return false, nil
         end
     end
 end
@@ -94,12 +88,11 @@ function CheckStructure(deviceId, structureDefinition)
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
     if not nodeA or not nodeB or nodeA == 0 or nodeB == 0 then
-        return false, "Invalid base platform for device.", nil, nil, {}
+        return false, { reason = "Invalid base platform for device." }
     end
     
     local nodeMap = { A = nodeA, B = nodeB }
     local checkedLinks = {}
-
     local linksToProcess = {}
     for _, link in ipairs(structureDefinition.links) do
         table.insert(linksToProcess, link)
@@ -116,17 +109,14 @@ function CheckStructure(deviceId, structureDefinition)
                 for i = 0, NodeLinkCount(fromNodeId) - 1 do
                     local nextNodeId = NodeLinkedNodeId(fromNodeId, i)
                     local linkKey = fromNodeId < nextNodeId and (fromNodeId .. "-" .. nextNodeId) or (nextNodeId .. "-" .. fromNodeId)
-
                     if not checkedLinks[linkKey] then
                         local actualMaterial = GetLinkMaterialSaveName(fromNodeId, nextNodeId)
                         local actualVector = SubtractVectors(NodePosition(nextNodeId), NodePosition(fromNodeId))
                         local actualLength = Magnitude(actualVector)
                         local actualAngle = SignedAngleBetweenVectors({x=1, y=0}, actualVector)
-
                         if actualMaterial == linkDef.material and
                            math.abs(actualLength - linkDef.length) < LENGTH_TOLERANCE and
                            math.abs(actualAngle - linkDef.angle) < ANGLE_TOLERANCE then
-                            
                             if nodeMap[linkDef.to] and nodeMap[linkDef.to] ~= nextNodeId then
                             elseif not nodeMap[linkDef.to] then
                                 nodeMap[linkDef.to] = nextNodeId
@@ -155,31 +145,47 @@ function CheckStructure(deviceId, structureDefinition)
 
     if #linksToProcess > 0 then
         local firstUnmatched = linksToProcess[1]
-        return false, "Could not find a matching link in the structure.", nodeMap[firstUnmatched.from], firstUnmatched, nodeMap
+        return false, { reason = "Could not find a matching link in the structure.", failingNodeId = nodeMap[firstUnmatched.from], failingLinkDef = firstUnmatched, nodeMap = nodeMap }
     end
 
+    local foundDevices = {}
+    local foundLinks = {}
+    for linkKey, _ in pairs(checkedLinks) do
+        local nodes = {}
+        for id in string.gmatch(linkKey, "[^-]+") do
+            table.insert(nodes, tonumber(id))
+        end
+        table.insert(foundLinks, { nodeA = nodes[1], nodeB = nodes[2] })
+    end
     if structureDefinition.requiredDevices then
         for _, devDef in ipairs(structureDefinition.requiredDevices) do
             local fromId = nodeMap[devDef.onLink.from]
             local toId = nodeMap[devDef.onLink.to]
             if not fromId or not toId then
-                return false, "Device Check Error: Node '"..tostring(devDef.onLink.from).."' or '"..tostring(devDef.onLink.to).."' not found.", nil, nil, nodeMap
+                return false, { reason = "Device Check Error: Node not found.", failingLinkDef = devDef, nodeMap = nodeMap }
             end
             local foundDeviceId = GetDeviceIdOnPlatform(fromId, toId)
             if not foundDeviceId or foundDeviceId == -1 then
-                return false, "Device not found: Expected '"..devDef.saveName.."' on link " .. tostring(devDef.onLink.from) .. "->" .. tostring(devDef.onLink.to), nil, nil, nodeMap
+                return false, { reason = "Device not found: Expected '"..devDef.saveName.."'", failingLinkDef = devDef, nodeMap = nodeMap }
             end
             if GetDeviceType(foundDeviceId) ~= devDef.saveName then
-                return false, "Device mismatch: Expected '"..devDef.saveName.."' but found '"..GetDeviceType(foundDeviceId).."'", nil, nil, nodeMap
+                return false, { reason = "Device mismatch: Expected '"..devDef.saveName.."' but found '"..GetDeviceType(foundDeviceId).."'", failingLinkDef = devDef, nodeMap = nodeMap }
             end
             if devDef.t and devDef.t ~= -1 then
                 local foundT = GetDeviceLinkPosition(foundDeviceId)
                 if math.abs(foundT - devDef.t) > DEVICE_T_TOLERANCE then
-                    return false, "Device position mismatch: Expected t="..devDef.t..", found t="..foundT, nil, nil, nodeMap
+                    return false, { reason = "Device position mismatch", failingLinkDef = devDef, nodeMap = nodeMap }
                 end
             end
+            table.insert(foundDevices, foundDeviceId)
         end
     end
 
-    return true
+    local structureData = {
+        deviceCount = #foundDevices,
+        deviceIds = foundDevices,
+        linkNodePairs = foundLinks,
+        nodeMap = nodeMap
+    }
+    return true, structureData
 end

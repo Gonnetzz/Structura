@@ -46,6 +46,13 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 			BuildDuration = 1,
 			Button = "hud-upgrade-log",
 		},
+		{
+			Enabled = false,
+			SaveName = "test_device",
+			MetalCost = 0,
+			EnergyCost = 0,
+			BuildDuration = 0.1,
+		},
 	},
 })
 
