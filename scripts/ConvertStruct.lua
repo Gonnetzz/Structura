@@ -68,11 +68,13 @@ function InitiateLinkDemolition(conversionId)
     local linkMap = {}
     
     for _, link in ipairs(process.linkNodePairs) do
-        adj[link.nodeA] = adj[link.nodeA] or {}
-        adj[link.nodeB] = adj[link.nodeB] or {}
-        table.insert(adj[link.nodeA], link.nodeB)
-        table.insert(adj[link.nodeB], link.nodeA)
-        linkMap[GetLinkKey(link.nodeA, link.nodeB)] = link
+        local nodeA, nodeB = link.nodeA, link.nodeB
+        adj[nodeA] = adj[nodeA] or {}
+        adj[nodeB] = adj[nodeB] or {}
+        table.insert(adj[nodeA], nodeB)
+        table.insert(adj[nodeB], nodeA)
+        link.length = Magnitude(SubtractVectors(NodePosition(nodeA), NodePosition(nodeB)))
+        linkMap[GetLinkKey(nodeA, nodeB)] = link
     end
 
     local distance = {}

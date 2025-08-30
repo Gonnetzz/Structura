@@ -1,3 +1,4 @@
+dofile("scripts/forts.lua")
 table.insert(Sprites, ButtonSprite("lead_context", "context/lead_mat", nil, nil, nil, nil, path))
 table.insert(Sprites, DetailSprite("lead_detail", "lead_det", path))
 table.insert(Sprites, ButtonSprite("uran_context", "context/uran_mat", nil, nil, nil, nil, path))
@@ -249,3 +250,30 @@ table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 	DestroyEffect = "effects/armor_destroy.lua",
 	FullExtrusion = true,
 }))
+--[[
+local materialsToClone = {
+    "bracing", "backbracing", "armour", "door", "rope", "portal", "shield",
+    "lead", "uran", "uran2", "test_material"
+}
+
+for _, materialName in ipairs(materialsToClone) do
+    local originalMaterial = FindMaterial(materialName)
+    if originalMaterial then
+        local freeMaterial = DeepCopy(originalMaterial)
+        freeMaterial.SaveName = materialName .. "_free"
+        
+        freeMaterial.MetalBuildCost = 0
+        freeMaterial.EnergyBuildCost = 0
+        freeMaterial.MetalRepairCost = 0
+        freeMaterial.EnergyRepairCost = 0
+        freeMaterial.MetalReclaim = 0
+        freeMaterial.EnergyReclaim = 0
+
+        freeMaterial.Enabled = false
+        
+        table.insert(Materials, freeMaterial)
+        --Log("Created free clone: " .. freeMaterial.SaveName)
+    else
+        Log("Warning: Could not find material to clone: " .. materialName)
+    end
+end--]]
