@@ -7,11 +7,11 @@ function GetLinkKey(nodeA, nodeB)
     if nodeA < nodeB then return nodeA .. "-" .. nodeB else return nodeB .. "-" .. nodeA end
 end
 
-function ConvDevice(deviceIds)
-    Log("Destroying " .. #deviceIds .. " devices to trigger conversion...")
+function SalvageDevice(deviceIds)
+    Log("Salvaging " .. #deviceIds .. " devices to trigger conversion...")
     for _, deviceId in ipairs(deviceIds) do
         if DeviceExists(deviceId) then
-            ApplyDamageToDevice(deviceId, 10000)
+            DestroyDeviceById(deviceId)
         end
     end
     return true
@@ -71,8 +71,8 @@ function InitiateLinkDemolition(conversionId)
         local nodeA, nodeB = link.nodeA, link.nodeB
         adj[nodeA] = adj[nodeA] or {}
         adj[nodeB] = adj[nodeB] or {}
-        table.insert(adj[nodeA], nodeB)
-        table.insert(adj[nodeB], nodeA)
+        table.insert(adj[link.nodeA], nodeB)
+        table.insert(adj[link.nodeB], nodeA)
         link.length = Magnitude(SubtractVectors(NodePosition(nodeA), NodePosition(nodeB)))
         linkMap[GetLinkKey(nodeA, nodeB)] = link
     end
@@ -155,10 +155,10 @@ function ConvertStructureStart(teamId, controlPanelUpgradeId, structureData)
         table.insert(ConversionProcesses[conversionId].triggerDeviceIds, id)
     end
     
-    Log("Conversion " .. conversionId .. ": Process created. Waiting for " .. #structureData.deviceIds .. " devices to be destroyed.")
+    Log("Conversion " .. conversionId .. ": Process created. Waiting for " .. #structureData.deviceIds .. " devices to be salvaged.")
 
     if structureData.deviceIds and #structureData.deviceIds > 0 then
-        ConvDevice(structureData.deviceIds)
+        SalvageDevice(structureData.deviceIds)
     else
         Log("Conversion " .. conversionId .. ": No trigger devices found, scheduling link demolition immediately.")
         ConversionProcesses[conversionId].demolitionInitiated = true

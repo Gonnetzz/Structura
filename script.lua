@@ -5,9 +5,9 @@ dofile(path .. "/scripts/StructureUtils.lua")
 dofile(path .. "/scripts/readStructure.lua")
 dofile(path .. "/scripts/createStructure.lua")
 dofile(path .. "/scripts/ConvertStruct.lua")
+dofile(path .. "/scripts/bank.lua")
 
 MaterialCostsAndReclaim = {}
-ResourceDebt = {}
 
 function Load(gameStart)
     Log("--- Loading Material Data for Archigebra Mod ---")
@@ -65,16 +65,40 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
     end
 end
 
-function OnDeviceDestroyed(teamId, deviceId, saveName, nodeA, nodeB, t)
+function OnDeviceDeleted(teamId, deviceId, saveName, nodeA, nodeB, t)
+    local salvageRefundFactor = 0.5
+    local costs = GetDeviceCost(saveName)
+    
+    if costs then
+        local metalToSubtract = costs.metal * salvageRefundFactor
+        local energyToSubtract = costs.energy * salvageRefundFactor
+
+        Log(string.format("Device '%s' salvaged. Build Cost (M=%.2f, E=%.2f).", saveName, costs.metal, costs.energy))
+        Log(string.format("  - Calculated reclaim value to subtract: Metal=%.2f, Energy=%.2f", metalToSubtract, energyToSubtract))
+
+        if metalToSubtract > 0 or energyToSubtract > 0 then
+            local currentRes = GetTeamResources(teamId)
+            if currentRes.metal >= metalToSubtract and currentRes.energy >= energyToSubtract then
+                AddResources(teamId, Value(-metalToSubtract, -energyToSubtract), false, Vec3())
+                Log("  - Subtracting device reclaim resources directly.")
+            else
+                Log("  - Insufficient resources for device reclaim. Using debt system.")
+                ManageResourceDebt(teamId, metalToSubtract, energyToSubtract)
+            end
+        end
+    else
+        Log("Warning: Could not get costs for device '"..saveName.."'")
+    end
+
     for id, process in pairs(ConversionProcesses) do
         if process.triggerDeviceIds then
             for i, triggerId in ipairs(process.triggerDeviceIds) do
                 if triggerId == deviceId then
-                    Log("Conversion " .. id .. ": Trigger device " .. deviceId .. " confirmed destroyed.")
+                    Log("Conversion " .. id .. ": Trigger device " .. deviceId .. " confirmed salvaged.")
                     table.remove(process.triggerDeviceIds, i)
                     
                     if #process.triggerDeviceIds == 0 and not process.demolitionInitiated then
-                        Log("Conversion " .. id .. ": All trigger devices destroyed. Scheduling link demolition in 1 second.")
+                        Log("Conversion " .. id .. ": All trigger devices salvaged. Scheduling link demolition in 1 second.")
                         process.demolitionInitiated = true
                         ScheduleCall(1, InitiateLinkDemolition, id)
                     end
@@ -82,47 +106,6 @@ function OnDeviceDestroyed(teamId, deviceId, saveName, nodeA, nodeB, t)
                 end
             end
         end
-    end
-end
-
-function ProcessDebtPayment(teamId)
-    if not ResourceDebt[teamId] then return end
-
-    local debt = ResourceDebt[teamId]
-    local currentRes = GetTeamResources(teamId)
-
-    local metalToPay = math.min(currentRes.metal, debt.Metal)
-    local energyToPay = math.min(currentRes.energy, debt.Energy)
-
-    if metalToPay > 0 or energyToPay > 0 then
-        AddResources(teamId, Value(-metalToPay, -energyToPay), false, Vec3())
-        Log(string.format("  - Debt Payment (Team %d): Paid M=%.2f, E=%.2f", teamId, metalToPay, energyToPay))
-    end
-
-    debt.Metal = debt.Metal - metalToPay
-    debt.Energy = debt.Energy - energyToPay
-
-    if debt.Metal < 0.01 and debt.Energy < 0.01 then
-        Log("  - Debt fully paid for Team " .. teamId)
-        ResourceDebt[teamId] = nil
-    else
-        Log(string.format("  - Remaining debt for Team %d: M=%.2f, E=%.2f. Scheduling next payment.", teamId, debt.Metal, debt.Energy))
-        ScheduleCall(0.1, ProcessDebtPayment, teamId)
-    end
-end
-
-function ManageResourceDebt(teamId, metalDebt, energyDebt)
-    if metalDebt <= 0 and energyDebt <= 0 then return end
-
-    if ResourceDebt[teamId] then
-        ResourceDebt[teamId].Metal = ResourceDebt[teamId].Metal + metalDebt
-        ResourceDebt[teamId].Energy = ResourceDebt[teamId].Energy + energyDebt
-        Log(string.format("  - Added to existing debt for Team %d: M=%.2f, E=%.2f. Total debt: M=%.2f, E=%.2f",
-            teamId, metalDebt, energyDebt, ResourceDebt[teamId].Metal, ResourceDebt[teamId].Energy))
-    else
-        ResourceDebt[teamId] = { Metal = metalDebt, Energy = energyDebt }
-        Log(string.format("  - New debt created for Team %d: M=%.2f, E=%.2f. Starting payment process.", teamId, metalDebt, energyDebt))
-        ScheduleCall(0.1, ProcessDebtPayment, teamId)
     end
 end
 
@@ -143,18 +126,13 @@ function OnLinkDestroyed(teamId, saveName, nodeA, nodeB, breakType)
                     local metalToSubtract = linkLength * data.MetalReclaim
                     local energyToSubtract = linkLength * data.EnergyReclaim
 
-                    Log(string.format("  - Calculation for %s: Length(%.2f) * MR(%.3f) = Metal(%.2f)", saveName, linkLength, data.MetalReclaim, metalToSubtract))
-                    Log(string.format("  - Calculation for %s: Length(%.2f) * ER(%.3f) = Energy(%.2f)", saveName, linkLength, data.EnergyReclaim, energyToSubtract))
-
                     if metalToSubtract > 0 or energyToSubtract > 0 then
                         local currentRes = GetTeamResources(teamId)
                         if currentRes.metal >= metalToSubtract and currentRes.energy >= energyToSubtract then
-                            -- pay gonessa rn
                             AddResources(teamId, Value(-metalToSubtract, -energyToSubtract), false, Vec3())
-                            Log(string.format("  - Subtracting resources directly: Metal=%.2f, Energy=%.2f", metalToSubtract, energyToSubtract))
+                            Log(string.format("  - Subtracting link resources directly: Metal=%.2f, Energy=%.2f", metalToSubtract, energyToSubtract))
                         else
-                            -- schedule appointment
-                            Log("  - Insufficient resources for direct payment. Using debt system.")
+                            Log("  - Insufficient resources for link reclaim. Using debt system.")
                             ManageResourceDebt(teamId, metalToSubtract, energyToSubtract)
                         end
                     end
