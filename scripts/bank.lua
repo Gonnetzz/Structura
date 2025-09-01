@@ -13,17 +13,17 @@ function ProcessDebtPayment(teamId)
 
     if metalToPay > 0 or energyToPay > 0 then
         AddResources(teamId, Value(-metalToPay, -energyToPay), false, Vec3())
-        Log(string.format("  - Debt Payment (Team %d): Paid M=%.2f, E=%.2f", teamId, metalToPay, energyToPay))
+        loggy(string.format("  - Debt Payment (Team %d): Paid M=%.2f, E=%.2f", teamId, metalToPay, energyToPay), 2)
     end
 
     debt.Metal = debt.Metal - metalToPay
     debt.Energy = debt.Energy - energyToPay
 
     if debt.Metal < 0.01 and debt.Energy < 0.01 then
-        Log("  - Debt fully paid for Team " .. teamId)
+        loggy("  - Debt fully paid for Team " .. teamId, 1)
         ResourceDebt[teamId] = nil
     else
-        Log(string.format("  - Remaining debt for Team %d: M=%.2f, E=%.2f. Scheduling next payment.", teamId, debt.Metal, debt.Energy))
+        loggy(string.format("  - Remaining debt for Team %d: M=%.2f, E=%.2f. Scheduling next payment.", teamId, debt.Metal, debt.Energy), 2)
         ScheduleCall(0.1, ProcessDebtPayment, teamId)
     end
 end
@@ -34,11 +34,11 @@ function ManageResourceDebt(teamId, metalDebt, energyDebt)
     if ResourceDebt[teamId] then
         ResourceDebt[teamId].Metal = ResourceDebt[teamId].Metal + metalDebt
         ResourceDebt[teamId].Energy = ResourceDebt[teamId].Energy + energyDebt
-        Log(string.format("  - Added to existing debt for Team %d: M=%.2f, E=%.2f. Total debt: M=%.2f, E=%.2f",
-            teamId, metalDebt, energyDebt, ResourceDebt[teamId].Metal, ResourceDebt[teamId].Energy))
+        loggy(string.format("  - Added to existing debt for Team %d: M=%.2f, E=%.2f. Total debt: M=%.2f, E=%.2f",
+            teamId, metalDebt, energyDebt, ResourceDebt[teamId].Metal, ResourceDebt[teamId].Energy), 2)
     else
         ResourceDebt[teamId] = { Metal = metalDebt, Energy = energyDebt }
-        Log(string.format("  - New debt created for Team %d: M=%.2f, E=%.2f. Starting payment process.", teamId, metalDebt, energyDebt))
+        loggy(string.format("  - New debt created for Team %d: M=%.2f, E=%.2f. Starting payment process.", teamId, metalDebt, energyDebt), 1)
         ScheduleCall(0.1, ProcessDebtPayment, teamId)
     end
 end
