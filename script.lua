@@ -12,6 +12,8 @@ ResourceDebt = {}
 
 DEBUG = true
 DEBUG_LEVEL = 0
+CONVERSION_TIMEOUT = 30
+HIGHLIGHT_TIMEOUT = 5
 
 function loggy(msg, level)
     level = level or 0
@@ -22,18 +24,15 @@ end
 
 function LogForPlayer(teamId, msg)
     if GetLocalTeamId() == teamId then
-        Log(msg)
+        Log("[HL=FFFDA3]PlayerLog [HL=FFFFFF]" .. msg)
     end
 end
 
 function LogForSide(teamId, msg)
     if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
-        Log(msg)
+        Log("[HL=FFFDA3]SideLog [HL=FFFFFF]" .. msg)
     end
 end
-
-CONVERSION_TIMEOUT = 30
-HIGHLIGHT_TIMEOUT = 5
 
 function Load(gameStart)
     loggy("--- Loading Material Data for Archigebra Mod ---", 0)
@@ -53,9 +52,9 @@ function Load(gameStart)
             MetalReclaim = metalReclaimFactor, EnergyReclaim = energyReclaimFactor
         }
         loggy(string.format("Material: %-15s | MC:%.2f EC:%.2f | MR:%.2f ER:%.2f",
-            materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 1)
+            materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 0)
     end
-    loggy("--- Material Data Loaded ---", 1)
+    loggy("--- Material Data Loaded ---", 0)
 end
 
 function DisableHighlight(nodeA, nodeB)
@@ -81,17 +80,21 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
             ConvertStructureStart(teamId, deviceId, "House", structureData)
         else
             loggy("Test False: Structure does not match 'House'.", 1)
-            local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue") .. " or " .. (failureData.secondary.reason or "Unknown issue")
-            LogForPlayer(teamId, errMsg)
-            
-            if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
-                if failureData.primary and failureData.primary.correctLinkKeys and failureData.primary.linkMap then
-                    loggy("Highlighting correctly placed struts for 5 seconds...", 1)
-                    for linkKey, _ in pairs(failureData.primary.correctLinkKeys) do
-                        local link = failureData.primary.linkMap[linkKey]
-                        if link then
-                            HighlightLink(link.nodeA, link.nodeB, true)
-                            ScheduleCall(HIGHLIGHT_TIMEOUT, DisableHighlight, link.nodeA, link.nodeB)
+            if failureData then
+                local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue")
+                if failureData.secondary and failureData.secondary.reason and failureData.primary.reason ~= failureData.secondary.reason then
+                    errMsg = errMsg .. " or " .. failureData.secondary.reason
+                end
+                LogForPlayer(teamId, errMsg)
+                if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
+                    if failureData.primary and failureData.primary.correctLinkKeys and failureData.primary.linkMap then
+                        loggy("Highlighting correctly placed struts for " .. HIGHLIGHT_TIMEOUT .. " seconds...", 1)
+                        for linkKey, _ in pairs(failureData.primary.correctLinkKeys) do
+                            local link = failureData.primary.linkMap[linkKey]
+                            if link then
+                                HighlightLink(link.nodeA, link.nodeB, true)
+                                ScheduleCall(HIGHLIGHT_TIMEOUT, DisableHighlight, link.nodeA, link.nodeB)
+                            end
                         end
                     end
                 end
@@ -108,29 +111,12 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 end
 
 function OnDeviceDeleted(teamId, deviceId, saveName, nodeA, nodeB, t)
-    local salvageRefundFactor = GetRule(teamId, "SalvageRefundFactor")
-    if salvageRefundFactor == nil or salvageRefundFactor == 0 then salvageRefundFactor = 0.5 end
-    local costs = GetDeviceCost(saveName)
-    if costs then
-        local metalToSubtract = costs.metal * salvageRefundFactor
-        local energyToSubtract = costs.energy * salvageRefundFactor
-        loggy(string.format("Device '%s' salvaged. Build Cost (M=%.2f, E=%.2f). Using Reclaim Factor %.2f.", saveName, costs.metal, costs.energy, salvageRefundFactor), 1)
-        loggy(string.format("  - Calculated reclaim value to subtract: Metal=%.2f, Energy=%.2f", metalToSubtract, energyToSubtract), 1)
-        if metalToSubtract > 0 or energyToSubtract > 0 then
-            local currentRes = GetTeamResources(teamId)
-            if currentRes.metal >= metalToSubtract and currentRes.energy >= energyToSubtract then
-                AddResources(teamId, Value(-metalToSubtract, -energyToSubtract), false, Vec3())
-                loggy("  - Subtracting device reclaim resources directly.", 2)
-            else
-                loggy("  - Insufficient resources for device reclaim. Using debt system.", 1)
-                ManageResourceDebt(teamId, metalToSubtract, energyToSubtract)
-            end
-        end
-    end
+    local isConversionDevice = false
     for id, process in pairs(ConversionProcesses) do
         if process.triggerDeviceIds then
             for i, triggerId in ipairs(process.triggerDeviceIds) do
                 if triggerId == deviceId then
+                    isConversionDevice = true
                     loggy("Conversion " .. id .. ": Trigger device " .. deviceId .. " confirmed salvaged.", 2)
                     table.remove(process.triggerDeviceIds, i)
                     if #process.triggerDeviceIds == 0 and not process.demolitionInitiated then
@@ -138,7 +124,29 @@ function OnDeviceDeleted(teamId, deviceId, saveName, nodeA, nodeB, t)
                         process.demolitionInitiated = true
                         ScheduleCall(1, InitiateLinkDemolition, id)
                     end
-                    return
+                    break
+                end
+            end
+        end
+        if isConversionDevice then break end
+    end
+
+    if isConversionDevice then
+        local salvageRefundFactor = GetRule(teamId, "SalvageRefundFactor")
+        if salvageRefundFactor == nil or salvageRefundFactor == 0 then salvageRefundFactor = 0.5 end
+        local costs = GetDeviceCost(saveName)
+        if costs then
+            local metalToSubtract = costs.metal * salvageRefundFactor
+            local energyToSubtract = costs.energy * salvageRefundFactor
+            loggy(string.format("Device '%s' (part of conversion) salvaged. Reclaim value to subtract: M=%.2f, E=%.2f", saveName, metalToSubtract, energyToSubtract), 1)
+            if metalToSubtract > 0 or energyToSubtract > 0 then
+                local currentRes = GetTeamResources(teamId)
+                if currentRes.metal >= metalToSubtract and currentRes.energy >= energyToSubtract then
+                    AddResources(teamId, Value(-metalToSubtract, -energyToSubtract), false, Vec3())
+                    loggy("  - Subtracting device reclaim resources directly.", 2)
+                else
+                    loggy("  - Insufficient resources for device reclaim. Using debt system.", 1)
+                    ManageResourceDebt(teamId, metalToSubtract, energyToSubtract)
                 end
             end
         end

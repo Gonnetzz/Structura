@@ -18,7 +18,7 @@ function TimeoutConversion(conversionId)
         for _, link in ipairs(process.linkNodePairs) do
             HighlightLink(link.nodeA, link.nodeB, false)
         end
-        Log(string.format("Error: Failed Conversion for [%s] (%d)", process.structureName, conversionId))
+        LogForSide(process.teamId, string.format("Error: Failed Conversion for [%s] (%d)", process.structureName, conversionId))
     end
 
     ConversionProcesses[conversionId] = nil
