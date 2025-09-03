@@ -13,12 +13,15 @@ function TimeoutConversion(conversionId)
 
     loggy("Conversion " .. conversionId .. ": Process timed out after 30 seconds.", 1)
     
+    -- Logge die Fehlermeldung für alle Verbündeten und Beobachter
+    LogForSpec(process.teamId, string.format("Error: Failed Conversion for [%s] (Team: %d, Process: %d)", process.structureName, process.teamId, conversionId))
+    
+    -- Deaktiviere Highlights nur für das betroffene Team
     if GetLocalTeamId() % MAX_SIDES == process.teamId % MAX_SIDES then
         loggy("  - Disabling highlights for timed out process.", 2)
         for _, link in ipairs(process.linkNodePairs) do
             HighlightLink(link.nodeA, link.nodeB, false)
         end
-        LogForSide(process.teamId, string.format("Error: Failed Conversion for [%s] (%d)", process.structureName, conversionId))
     end
 
     ConversionProcesses[conversionId] = nil

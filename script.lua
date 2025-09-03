@@ -28,9 +28,17 @@ function LogForPlayer(teamId, msg)
     end
 end
 
-function LogForSide(teamId, msg)
-    if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
-        Log("[HL=FFFDA3]SideLog [HL=FFFFFF]" .. msg)
+function LogForSpec1(teamId, msg)
+    local localTeam = GetLocalTeamId()
+    if localTeam == TEAM_OBS or (localTeam > 0 and teamId > 0 and localTeam % MAX_SIDES == teamId % MAX_SIDES) then
+        Log("[HL=FFFDA3]SpecLog [HL=FFFFFF]" .. msg)
+    end
+end
+
+function LogForSpec(teamId, msg)
+    local localTeam = GetLocalTeamId()
+    if localTeam == TEAM_OBS or localTeam == teamId then
+        Log("[HL=FFFDA3]SpecLog [HL=FFFFFF]" .. msg)
     end
 end
 
