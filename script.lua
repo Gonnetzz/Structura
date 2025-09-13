@@ -12,8 +12,6 @@ ResourceDebt = {}
 
 DEBUG = true
 DEBUG_LEVEL = 0
-CONVERSION_TIMEOUT = 30
-HIGHLIGHT_TIMEOUT = 5
 
 function loggy(msg, level)
     level = level or 0
@@ -24,23 +22,19 @@ end
 
 function LogForPlayer(teamId, msg)
     if GetLocalTeamId() == teamId then
-        Log("[HL=FFFDA3]PlayerLog [HL=FFFFFF]" .. msg)
-    end
-end
-
-function LogForSpec1(teamId, msg)
-    local localTeam = GetLocalTeamId()
-    if localTeam == TEAM_OBS or (localTeam > 0 and teamId > 0 and localTeam % MAX_SIDES == teamId % MAX_SIDES) then
-        Log("[HL=FFFDA3]SpecLog [HL=FFFFFF]" .. msg)
+        Log(msg)
     end
 end
 
 function LogForSpec(teamId, msg)
     local localTeam = GetLocalTeamId()
-    if localTeam == TEAM_OBS or localTeam == teamId then
-        Log("[HL=FFFDA3]SpecLog [HL=FFFFFF]" .. msg)
+    if localTeam == TEAM_OBS or (localTeam > 0 and teamId > 0 and localTeam % MAX_SIDES == teamId % MAX_SIDES) then
+        Log(msg)
     end
 end
+
+CONVERSION_TIMEOUT = 30
+HIGHLIGHT_TIMEOUT = 5
 
 function Load(gameStart)
     loggy("--- Loading Material Data for Archigebra Mod ---", 0)
@@ -112,8 +106,16 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
     elseif saveName == "test_device_log_structure" then
         GenerateStructureDefinitionString(deviceId)
         UpgradeDevice(deviceId, "test_device")
-    elseif saveName == "test_device_create_structure" then
-        CreateStructureFromDefinition(deviceId, StructureDefinitions.House, teamId)
+    
+    elseif string.sub(saveName, 1, 7) == "create_" then
+        local structureName = string.gsub(string.sub(saveName, 8), "_", " ")
+        for name, def in pairs(StructureDefinitions) do
+            if string.lower(name) == string.lower(structureName) then
+                loggy("Creating structure: " .. name, 1)
+                CreateStructureFromDefinition(deviceId, def, teamId)
+                break
+            end
+        end
         UpgradeDevice(deviceId, "test_device")
     end
 end

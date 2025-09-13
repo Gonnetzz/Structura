@@ -1,10 +1,21 @@
+dofile(path .. "/scripts/StructureUtils.lua")
+
 table.insert(Sprites, DetailSprite("hud-detail-control-panel", "HUD-Details-ControlPanel", path))
 table.insert(Sprites, ButtonSprite("hud-control-panel-icon", "HUD/HUD-ControlPanel", nil, ButtonSpriteBottom, nil, nil, path))
+
 table.insert(Sprites, DetailSprite("hud-detail-test-device", "HUD-Details-TestDevice", path))
 table.insert(Sprites, ButtonSprite("hud-test-device-icon", "HUD/TestDevice", nil, ButtonSpriteBottom, nil, nil, path))
 
+table.insert(Sprites, DetailSprite("hud-detail-ecore", "HUD-Details-ECore", path))
+table.insert(Sprites, ButtonSprite("hud-ecore-icon", "HUD/ECore", nil, ButtonSpriteBottom, nil, nil, path))
+
+table.insert(Sprites, DetailSprite("hud-detail-kcore", "HUD-Details-KCore", path))
+table.insert(Sprites, ButtonSprite("hud-kcore-icon", "HUD/KCore", nil, ButtonSpriteBottom, nil, nil, path))
+
 table.insert(Sprites, ButtonSprite("hud-upgrade-log", "context/upgradeLog", nil, nil, nil, nil, path))
 table.insert(Sprites, ButtonSprite("hud-upgrade-create", "context/upgradeCreate", nil, nil, nil, nil, path))
+
+
 
 function IndexOfDevice(saveName)
 	for k,v in ipairs(Devices) do
@@ -77,8 +88,18 @@ if controlPanelUpgrade then
     table.insert(Devices, controlPanelUpgrade)
 end
 
-table.insert(Devices, IndexOfDevice("sandbags") + 1,
-{
+local testDeviceUpgrades = {
+    { 
+		Enabled = true, 
+		SaveName = "test_device_log_structure", 
+		MetalCost = 10, 
+		EnergyCost = 10, 
+		BuildDuration = 1, 
+		Button = "hud-upgrade-log" 
+	}
+}
+
+local testDeviceBase = {
 	SaveName = "test_device",
 	FileName = path .. "/devices/test_device.lua",
 	Icon = "hud-test-device-icon",
@@ -96,65 +117,151 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
-	--Enabled = false,
+	ShowInEditor = true,
+	SelectEffect = "ui/hud/devices/ui_devices",
+	Upgrades = testDeviceUpgrades
+}
+
+for structureName, _ in pairs(StructureDefinitions) do
+    local upgradeSaveName = "create_" .. string.lower(structureName)
+    
+    table.insert(testDeviceUpgrades, {
+        Enabled = true,
+        SaveName = upgradeSaveName,
+        MetalCost = 10,
+        EnergyCost = 10,
+        BuildDuration = 0.1,
+        Button = "hud-upgrade-create",
+    })
+
+    local newUpgradeDevice = DeepCopy(testDeviceBase)
+    newUpgradeDevice.SaveName = upgradeSaveName
+    newUpgradeDevice.FileName = path .. "/devices/test_device_upgrade.lua"
+    newUpgradeDevice.Enabled = false
+    newUpgradeDevice.ShowInEditor = false
+    newUpgradeDevice.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1 } }
+    table.insert(Devices, newUpgradeDevice)
+end
+
+table.insert(Devices, IndexOfDevice("sandbags") + 1, testDeviceBase)
+
+local testdeviceLogUpgrade = DeepCopy(testDeviceBase)
+testdeviceLogUpgrade.SaveName = "test_device_log_structure"
+testdeviceLogUpgrade.FileName = path .. "/devices/test_device_upgrade.lua"
+testdeviceLogUpgrade.Enabled = false
+testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
+table.insert(Devices, testdeviceLogUpgrade)
+
+table.insert(Devices, IndexOfDevice("sandbags") + 1,
+{
+	SaveName = "ecore",
+	FileName = path .. "/devices/ecore.lua",
+	Icon = "hud-ecore-icon",
+	Detail = "hud-detail-ecore",
+	Prerequisite = "upgrade",
+	BuildTimeComplete = 30,
+	ScrapPeriod = 8,
+	MetalCost = 200,
+	EnergyCost = 800,
+	MetalRepairCost = 200,
+	EnergyRepairCost = 800,
+	MetalReclaimMin = 0,
+	MetalReclaimMax = 0,
+	EnergyReclaimMin = 0,
+	EnergyReclaimMax = 0,
+	MaxUpAngle = StandardMaxUpAngle,
+	BuildOnGroundOnly = false,
+	HasDummy = false,
 	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades =
+	{
 		{
-			{
-				Enabled = true,
-				SaveName = "test_device_log_structure",
-				MetalCost = 
-				10, EnergyCost = 10, 
-				BuildDuration = 1,
-				Button = "hud-upgrade-log",
-			},
-			{
-				Enabled = true,
-				SaveName = "test_device_create_structure",
-				MetalCost = 10, 
-				EnergyCost = 10, 
-				BuildDuration = 1,
-				Button = "hud-upgrade-create",
-			},
+			Enabled = true,
+			SaveName = "ecore_upgrade",
+			MetalCost = 10,
+			EnergyCost = 10,
+			BuildDuration = 1,
+			Button = "hud-upgrade-log",
 		},
+	},
 })
 
-local testdevice = FindDevice("test_device")
-local testdeviceLogUpgrade = DeepCopy(testdevice)
-if testdeviceLogUpgrade then
-    testdeviceLogUpgrade.SaveName = "test_device_log_structure"
-    testdeviceLogUpgrade.FileName = path .. "/devices/test_device_upgrade.lua"
-    testdeviceLogUpgrade.Enabled = false
-    testdeviceLogUpgrade.Upgrades = 
-	{ 
-		{ 
-			Enabled = true, 
-			SaveName = "test_device", 
-			MetalCost = 0, 
-			EnergyCost = 0, 
-			BuildDuration = 0.1, 
-			Button = "hud-upgrade-log", 
-		}, 
-	}
-    table.insert(Devices, testdeviceLogUpgrade)
+local ecore = FindDevice("ecore")
+local ecoreUpgrade = DeepCopy(ecore)
+if ecoreUpgrade then
+    ecoreUpgrade.SaveName = "ecore_upgrade"
+    ecoreUpgrade.FileName = path .. "/devices/ecore_upgrade.lua"
+    ecoreUpgrade.Enabled = false
+    ecoreUpgrade.ShowInEditor = false
+   
+    ecoreUpgrade.Upgrades =
+    {
+        {
+            Enabled = true,
+            SaveName = "ecore",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+			Button = "hud-upgrade-log",
+        },
+    }
+    table.insert(Devices, ecoreUpgrade)
 end
 
-local testdeviceCreateUpgrade = DeepCopy(testdevice)
-if testdeviceCreateUpgrade then
-    testdeviceCreateUpgrade.SaveName = "test_device_create_structure"
-    testdeviceCreateUpgrade.FileName = path .. "/devices/test_device_upgrade.lua"
-    testdeviceCreateUpgrade.Enabled = false
-    testdeviceCreateUpgrade.Upgrades = 
-	{ 
-		{ 
-			Enabled = true, 
-			SaveName = "test_device", 
-			MetalCost = 0, 
-			EnergyCost = 0, 
-			BuildDuration = 0.1, 
-			Button = "hud-upgrade-create", 
-		}, 
-	}
-    table.insert(Devices, testdeviceCreateUpgrade)
+table.insert(Devices, IndexOfDevice("sandbags") + 1,
+{
+	SaveName = "kcore",
+	FileName = path .. "/devices/kcore.lua",
+	Icon = "hud-kcore-icon",
+	Detail = "hud-detail-kcore",
+	Prerequisite = "upgrade",
+	BuildTimeComplete = 30,
+	ScrapPeriod = 8,
+	MetalCost = 200,
+	EnergyCost = 800,
+	MetalRepairCost = 200,
+	EnergyRepairCost = 800,
+	MetalReclaimMin = 0,
+	MetalReclaimMax = 0,
+	EnergyReclaimMin = 0,
+	EnergyReclaimMax = 0,
+	MaxUpAngle = StandardMaxUpAngle,
+	BuildOnGroundOnly = false,
+	HasDummy = false,
+	ShowInEditor = true,
+	SelectEffect = "ui/hud/devices/ui_devices",
+	Upgrades =
+	{
+		{
+			Enabled = true,
+			SaveName = "kcore_upgrade",
+			MetalCost = 10,
+			EnergyCost = 10,
+			BuildDuration = 1,
+			Button = "hud-upgrade-log",
+		},
+	},
+})
+
+local kcore = FindDevice("kcore")
+local kcoreUpgrade = DeepCopy(kcore)
+if kcoreUpgrade then
+    kcoreUpgrade.SaveName = "kcore_upgrade"
+    kcoreUpgrade.FileName = path .. "/devices/kcore_upgrade.lua"
+    kcoreUpgrade.Enabled = false
+    kcoreUpgrade.ShowInEditor = false
+   
+    kcoreUpgrade.Upgrades =
+    {
+        {
+            Enabled = true,
+            SaveName = "kcore",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+			Button = "hud-upgrade-log",
+        },
+    }
+    table.insert(Devices, kcoreUpgrade)
 end
