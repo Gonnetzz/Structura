@@ -146,7 +146,7 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
             local fromId = nodeMap[dev.onLink.from]
             local toId = nodeMap[dev.onLink.to]
             if fromId and toId then
-				ScheduleCall(5, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
+				ScheduleCall(6, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
 			--[[
                 local result = CreateDevice(teamId, dev.saveName, fromId, toId, dev.t or 0.5)
                 if not result then

@@ -6,6 +6,7 @@ Angle is based on prev brace and constructed direction
 StructureDefinitions = {
 	House = {
 		mirrorable = true,
+		targetDevice = "test_device",
         requiredDevices = {
 			{ onLink = {from=3, to=4}, saveName="battery" },
 		},
@@ -23,41 +24,40 @@ StructureDefinitions = {
 	},
 	Weapon20mm = {
 	    mirrorable = false,
+		targetDevice = "test_device",
 		links = {
-				{ from = "A", to = 3, material = "armour", length = 100.00, angle = -90.00 },
-				{ from = "B", to = 4, material = "armour", length = 50.00, angle = -90.00 },
-				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
-				{ from = 4, to = 6, material = "armour", length = 83.55, angle = 0.00 },
+				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 4, material = "armour", length = 100.00, angle = 0.00 },
+				{ from = 3, to = 5, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 5, to = 6, material = "armour", length = 100.00, angle = 0.00 },
 		}
 	},
 	WeaponCanon = {
 	    mirrorable = true,
+		targetDevice = "test_device",
 		links = {
-				{ from = "A", to = 3, material = "armour", length = 100.00, angle = -90.00 },
-				{ from = "B", to = 4, material = "armour", length = 50.00, angle = -90.00 },
-				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
-				{ from = 4, to = 6, material = "armour", length = 127.38, angle = -13.41 },
-				{ from = 5, to = 6, material = "armour", length = 125.59, angle = 9.38 },
+				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 4, material = "armour", length = 100.00, angle = 0.00 },
+				{ from = 3, to = 5, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 5, to = 6, material = "armour", length = 100.00, angle = 0.00 },
 		}
 	},
 	WeaponFirebeam = {
 	    mirrorable = true,
-	    links = {
-            { from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
-            { from = 3, to = 4, material = "armour", length = 50.00, angle = -90.00 },
-            { from = 3, to = 5, material = "armour", length = 122.28, angle = 0.00 },
+		targetDevice = "test_device",
+		links = {
+				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 4, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
 		}
 	},
 	WeaponLaser = {
 	    mirrorable = true,
+		targetDevice = "test_device",
 		links = {
 				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
-				{ from = "B", to = 4, material = "armour", length = 158.58, angle = -18.94 },
-				{ from = 3, to = 5, material = "armour", length = 50.00, angle = -90.00 },
-				{ from = 3, to = 4, material = "armour", length = 150.00, angle = -0.56 },
-				{ from = 4, to = 5, material = "armour", length = 157.65, angle = -162.07 },
+				{ from = 3, to = 4, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
 		}
 	},
-	
-
 }

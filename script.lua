@@ -11,7 +11,7 @@ MaterialCostsAndReclaim = {}
 ResourceDebt = {}
 
 DEBUG = true
-DEBUG_LEVEL = 0
+DEBUG_LEVEL = 3
 
 function loggy(msg, level)
     level = level or 0
@@ -65,44 +65,92 @@ function DisableHighlight(nodeA, nodeB)
     end
 end
 
+function sCreateDevice(teamId, devicename, nodeA, nodeB, t)
+	local result = CreateDevice(teamId, devicename, nodeA, nodeB, t)
+	if result < 0 then
+		Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
+	else
+		loggy("createweapon successful. New device ID: " .. result, 1)
+	end
+end
+
+function sUpgradeDevice(deviceId, toname)
+	local result = UpgradeDevice(deviceId, toname)
+	if result < 0 then
+		Log("Error: upgrade failed with code: " .. result)
+	else
+		loggy("upgrade successful. New device ID: " .. result, 1)
+	end
+end
+
+function sCreateWeapon(teamId, devicename, nodeA, nodeB, t)
+	local result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
+	if result < 0 then
+		Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
+	else
+		loggy("createweapon successful. New device ID: " .. result, 1)
+		ScheduleCall(0.1, sUpgradeDevice, result, devicename)
+	end
+end
+
 function OnDeviceCreated(teamId, deviceId, saveName, nodeA, nodeB, t, upgradedId)
     for id, process in pairs(ConversionProcesses) do
         if saveName == "control_panel" and upgradedId == process.controlPanelUpgradeId then
             loggy("Conversion "..id..": Detected creation of new control_panel with ID: "..deviceId, 1)
             process.controlPanelId = deviceId
+		elseif saveName == "convfirebeam" then
+			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tolaser", nodeA, nodeB, t)
         end
     end
 end
 
-function OnDeviceCompleted(teamId, deviceId, saveName)
-    if saveName == "control_panel_upgrade" then
-        local success, structureData, failureData = CheckStructureWithTeam(teamId, deviceId, "House", StructureDefinitions.House)
-        if success then
-            loggy("Test True: 'House' structure found.", 1)
-            ConvertStructureStart(teamId, deviceId, "House", structureData)
-        else
-            loggy("Test False: Structure does not match 'House'.", 1)
-            if failureData then
-                local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue")
-                if failureData.secondary and failureData.secondary.reason and failureData.primary.reason ~= failureData.secondary.reason then
-                    errMsg = errMsg .. " or " .. failureData.secondary.reason
-                end
-                LogForPlayer(teamId, errMsg)
-                if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
-                    if failureData.primary and failureData.primary.correctLinkKeys and failureData.primary.linkMap then
-                        loggy("Highlighting correctly placed struts for " .. HIGHLIGHT_TIMEOUT .. " seconds...", 1)
-                        for linkKey, _ in pairs(failureData.primary.correctLinkKeys) do
-                            local link = failureData.primary.linkMap[linkKey]
-                            if link then
-                                HighlightLink(link.nodeA, link.nodeB, true)
-                                ScheduleCall(HIGHLIGHT_TIMEOUT, DisableHighlight, link.nodeA, link.nodeB)
-                            end
+function HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+    local success, structureData, failureData = CheckStructureWithTeam(teamId, deviceId, structureName, structureDef)
+    if success then
+        loggy("Test True: '" .. structureName .. "' structure found.", 1)
+        ConvertStructureStart(teamId, deviceId, structureName, structureData, targetDevice, isweapon)
+    else
+        loggy("Test False: Structure does not match '" .. structureName .. "'.", 1)
+        if failureData then
+            local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue")
+            if failureData.secondary 
+                and failureData.secondary.reason 
+                and failureData.primary.reason ~= failureData.secondary.reason then
+                errMsg = errMsg .. " or " .. failureData.secondary.reason
+            end
+            LogForPlayer(teamId, errMsg)
+
+            if GetLocalTeamId() % MAX_SIDES == teamId % MAX_SIDES then
+                if failureData.primary 
+                    and failureData.primary.correctLinkKeys 
+                    and failureData.primary.linkMap then
+                    loggy("Highlighting correctly placed struts for " .. HIGHLIGHT_TIMEOUT .. " seconds...", 1)
+                    for linkKey, _ in pairs(failureData.primary.correctLinkKeys) do
+                        local link = failureData.primary.linkMap[linkKey]
+                        if link then
+                            HighlightLink(link.nodeA, link.nodeB, true)
+                            ScheduleCall(HIGHLIGHT_TIMEOUT, DisableHighlight, link.nodeA, link.nodeB)
                         end
                     end
                 end
             end
         end
-        UpgradeDevice(deviceId, "control_panel")
+    end
+	UpgradeDevice(deviceId, basedevice)
+end
+
+function OnDeviceCompleted(teamId, deviceId, saveName)
+    if saveName == "control_panel_upgrade" then
+		local basedevice = "control_panel"
+        local structureName = "House"
+        local structureDef = StructureDefinitions.House
+        --local targetDevice = StructureDefinitions.House.targetDevice
+		local targetDevice = "convfirebeam"
+		local isweapon = false
+		
+		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+		
     elseif saveName == "test_device_log_structure" then
         GenerateStructureDefinitionString(deviceId)
         UpgradeDevice(deviceId, "test_device")
@@ -117,6 +165,12 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
             end
         end
         UpgradeDevice(deviceId, "test_device")
+	elseif saveName == "tolaser" then
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "lasercpy")
+	elseif saveName == "tofirebeam" then
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "firebeamcpy")
+	elseif saveName == "tocannon" then
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "cannoncpy")
     end
 end
 

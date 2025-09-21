@@ -13,10 +13,8 @@ function TimeoutConversion(conversionId)
 
     loggy("Conversion " .. conversionId .. ": Process timed out after 30 seconds.", 1)
     
-    -- Logge die Fehlermeldung für alle Verbündeten und Beobachter
     LogForSpec(process.teamId, string.format("Error: Failed Conversion for [%s] (Team: %d, Process: %d)", process.structureName, process.teamId, conversionId))
     
-    -- Deaktiviere Highlights nur für das betroffene Team
     if GetLocalTeamId() % MAX_SIDES == process.teamId % MAX_SIDES then
         loggy("  - Disabling highlights for timed out process.", 2)
         for _, link in ipairs(process.linkNodePairs) do
@@ -37,6 +35,17 @@ function SalvageDevice(deviceIds)
     return true
 end
 
+function makeweapon(teamId, weaponname, nodeA, nodeB, t)
+	local result = CreateDevice(teamId, weaponname, nodeA, nodeB, t)
+	if result < 0 then
+		Log("Error: UpgradeWeapon failed with code: " .. result)
+	else
+		loggy("Upgrade successful. New weapon ID: " .. result, 1)
+	end
+
+end
+
+
 function ProcessNextDemolitionLayer(conversionId)
     local process = ConversionProcesses[conversionId]
     if not process then return end
@@ -52,16 +61,33 @@ function ProcessNextDemolitionLayer(conversionId)
             end
         end
         if DeviceExists(process.controlPanelId) then
-            loggy("Upgrading control panel "..process.controlPanelId.." to target device 'test_device'.", 1)
-            local result = UpgradeDevice(process.controlPanelId, "test_device")
-            if result < 0 then
-                Log("ERROR: UpgradeDevice failed with code: " .. result)
-            else
-                loggy("Upgrade successful. New device ID: " .. result, 1)
-            end
-        else
-            loggy("Control panel "..process.controlPanelId.." no longer exists. Cannot complete conversion.", 1)
-        end
+			local odeviceid = process.controlPanelId
+			local deviceuname = process.structureName
+			local targetDevice = process.targetDevice or "test_device"
+			
+			loggy("Upgrading '" .. deviceuname .. "' (ID "..odeviceid..") to target device '"..targetDevice.."'.", 1)
+			
+			if not process.isweapon then
+				local result = UpgradeDevice(odeviceid, targetDevice)
+				if result < 0 then
+					Log("Error: UpgradeDevice failed with code: " .. result)
+				else
+					loggy("Upgrade successful. New device ID: " .. result, 1)
+				end
+			else
+				local nodeA = process.baseNodeA
+				local nodeB = process.baseNodeB
+				local teamId = process.teamId
+				local t = process.tpos
+				ApplyDamageToDevice(odeviceid, 123456)
+				--DestroyDeviceById(odeviceid)
+				ScheduleCall(1.1, makeweapon, teamId, targetDevice, nodeA, nodeB, t)
+			end
+			
+			
+		else
+			loggy("Upgrade device ID "..odeviceid.." no longer exists. Cannot complete conversion.", 1)
+		end
 
         ConversionProcesses[conversionId] = nil
         return
@@ -144,7 +170,7 @@ function InitiateLinkDemolition(conversionId)
     return true
 end
 
-function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, structureData)
+function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, structureData, targetDeviceSaveName, isweapon)
     loggy("--- Preparing Structure Conversion ---", 1)
     
     if not structureData or not structureData.linkNodePairs or not structureData.nodeMap then
@@ -153,11 +179,22 @@ function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, str
     end
 
     local conversionId = NextConversionId
+	local tpos = GetDeviceLinkPosition(controlPanelUpgradeId)
     NextConversionId = NextConversionId + 1
     ConversionProcesses[conversionId] = {
-        id = conversionId, teamId = teamId, controlPanelId = -1, controlPanelUpgradeId = controlPanelUpgradeId,
-        triggerDeviceIds = {}, linkNodePairs = structureData.linkNodePairs, baseNodeA = structureData.nodeMap.A,
-        baseNodeB = structureData.nodeMap.B, demolitionInitiated = false, structureName = structureName
+        id = conversionId, 
+		teamId = teamId, 
+		controlPanelId = -1, 
+		controlPanelUpgradeId = controlPanelUpgradeId,
+        triggerDeviceIds = {}, 
+		linkNodePairs = structureData.linkNodePairs, 
+		baseNodeA = structureData.nodeMap.A,
+        baseNodeB = structureData.nodeMap.B, 
+		demolitionInitiated = false, 
+		structureName = structureName,
+        targetDevice = targetDeviceSaveName,
+		tpos = tpos,
+		isweapon = isweapon
     }
     for _, id in ipairs(structureData.deviceIds) do
         table.insert(ConversionProcesses[conversionId].triggerDeviceIds, id)

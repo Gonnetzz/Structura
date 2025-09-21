@@ -33,8 +33,8 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	Icon = "hud-control-panel-icon",
 	Detail = "hud-detail-control-panel",
 	Prerequisite = "upgrade",
-	BuildTimeComplete = 30,
-	ScrapPeriod = 8,
+	BuildTimeComplete = 3,
+	ScrapPeriod = 2,
 	MetalCost = 150,
 	EnergyCost = 600,
 	MetalRepairCost = 150,
@@ -57,6 +57,15 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 			BuildDuration = 1,
 			Button = "hud-upgrade-log",
 		},
+		{
+            Enabled = false,
+            SaveName = "convfirebeam",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+            Button = "hud-upgrade-log",
+			Prerequisite = nil,
+        },
 		{
 			Enabled = false,
 			SaveName = "test_device",
@@ -84,8 +93,50 @@ if controlPanelUpgrade then
             BuildDuration = 0.1,
 			Button = "hud-upgrade-log",
         },
+		{
+            Enabled = false,
+            SaveName = "convfirebeam",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+            Button = "hud-upgrade-log",
+			Prerequisite = nil,
+        },
     }
     table.insert(Devices, controlPanelUpgrade)
+end
+local cpfirebeam = DeepCopy(controlPanel)
+if cpfirebeam then
+    cpfirebeam.SaveName = "convfirebeam"
+    cpfirebeam.FileName = path .. "/devices/ecore.lua"
+    cpfirebeam.Enabled = false
+    cpfirebeam.ShowOnHUD = false
+    cpfirebeam.Prerequisite = nil
+    cpfirebeam.BuildTimeComplete = 0
+    cpfirebeam.CanMirrorFacing = true
+    cpfirebeam.ScrapPeriod = 0
+    cpfirebeam.MetalCost = 0
+    cpfirebeam.EnergyCost = 0
+    cpfirebeam.MetalRepairCost = 0
+    cpfirebeam.EnergyRepairCost = 0
+    cpfirebeam.MetalReclaimMin = 0
+    cpfirebeam.MetalReclaimMax = 0
+    cpfirebeam.EnergyReclaimMin = 0
+    cpfirebeam.EnergyReclaimMax = 0
+
+    cpfirebeam.Upgrades =
+    {
+        {
+            Enabled = true,
+            SaveName = "control_panel",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+            Button = "hud-upgrade-log",
+        },
+    }
+
+    table.insert(Devices, cpfirebeam)
 end
 
 local testDeviceUpgrades = {
@@ -104,8 +155,8 @@ local testDeviceBase = {
 	FileName = path .. "/devices/test_device.lua",
 	Icon = "hud-test-device-icon",
 	Detail = "hud-detail-test-device",
-	BuildTimeComplete = 30,
-	ScrapPeriod = 8,
+	BuildTimeComplete = 3,
+	ScrapPeriod = 2,
 	MetalCost = 150,
 	EnergyCost = 600,
 	MetalRepairCost = 150,
@@ -159,8 +210,8 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	Icon = "hud-ecore-icon",
 	Detail = "hud-detail-ecore",
 	Prerequisite = "upgrade",
-	BuildTimeComplete = 30,
-	ScrapPeriod = 8,
+	BuildTimeComplete = 3,
+	ScrapPeriod = 2,
 	MetalCost = 200,
 	EnergyCost = 800,
 	MetalRepairCost = 200,
@@ -216,8 +267,8 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	Icon = "hud-kcore-icon",
 	Detail = "hud-detail-kcore",
 	Prerequisite = "upgrade",
-	BuildTimeComplete = 30,
-	ScrapPeriod = 8,
+	BuildTimeComplete = 3,
+	ScrapPeriod = 2,
 	MetalCost = 200,
 	EnergyCost = 800,
 	MetalRepairCost = 200,
