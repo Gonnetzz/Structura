@@ -66,7 +66,13 @@ function ProcessNextDemolitionLayer(conversionId)
 			local targetDevice = process.targetDevice or "test_device"
 			
 			loggy("Upgrading '" .. deviceuname .. "' (ID "..odeviceid..") to target device '"..targetDevice.."'.", 1)
-			
+			local result = UpgradeDevice(odeviceid, targetDevice)
+			if result < 0 then
+				Log("Error: UpgradeDevice failed with code: " .. result)
+			else
+				loggy("Upgrade successful. New device ID: " .. result, 1)
+			end
+			--[[
 			if not process.isweapon then
 				local result = UpgradeDevice(odeviceid, targetDevice)
 				if result < 0 then
@@ -81,12 +87,12 @@ function ProcessNextDemolitionLayer(conversionId)
 				local t = process.tpos
 				ApplyDamageToDevice(odeviceid, 123456)
 				--DestroyDeviceById(odeviceid)
-				ScheduleCall(1.1, makeweapon, teamId, targetDevice, nodeA, nodeB, t)
-			end
+				ScheduleCall(3.1, makeweapon, teamId, targetDevice, nodeA, nodeB, t)
+			end--]]
 			
 			
 		else
-			loggy("Upgrade device ID "..odeviceid.." no longer exists. Cannot complete conversion.", 1)
+			loggy("Upgrade device ID "..tostring(process.controlPanelId).." no longer exists. Cannot complete conversion.", 1)
 		end
 
         ConversionProcesses[conversionId] = nil
@@ -170,7 +176,7 @@ function InitiateLinkDemolition(conversionId)
     return true
 end
 
-function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, structureData, targetDeviceSaveName, isweapon)
+function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, structureData, basedevice, targetDevice, isweapon)
     loggy("--- Preparing Structure Conversion ---", 1)
     
     if not structureData or not structureData.linkNodePairs or not structureData.nodeMap then
@@ -192,7 +198,8 @@ function ConvertStructureStart(teamId, controlPanelUpgradeId, structureName, str
         baseNodeB = structureData.nodeMap.B, 
 		demolitionInitiated = false, 
 		structureName = structureName,
-        targetDevice = targetDeviceSaveName,
+		baseDeviceName = basedevice,
+        targetDevice = targetDevice,
 		tpos = tpos,
 		isweapon = isweapon
     }

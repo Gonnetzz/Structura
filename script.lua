@@ -95,12 +95,18 @@ end
 
 function OnDeviceCreated(teamId, deviceId, saveName, nodeA, nodeB, t, upgradedId)
     for id, process in pairs(ConversionProcesses) do
-        if saveName == "control_panel" and upgradedId == process.controlPanelUpgradeId then
-            loggy("Conversion "..id..": Detected creation of new control_panel with ID: "..deviceId, 1)
+		if process.baseDeviceName and saveName == process.baseDeviceName and upgradedId == process.controlPanelUpgradeId then
+            loggy("Conversion "..id..": Detected creation of new base device '"..saveName.."' with ID: "..deviceId, 1)
             process.controlPanelId = deviceId
 		elseif saveName == "convfirebeam" then
 			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tofirebeam", nodeA, nodeB, t)
+		elseif saveName == "convlaser" then
+			DestroyDeviceById(deviceId)
 			ScheduleCall(0.1, sCreateWeapon, teamId, "tolaser", nodeA, nodeB, t)
+		elseif saveName == "convcannon" then
+			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tocannon", nodeA, nodeB, t)
         end
     end
 end
@@ -109,7 +115,7 @@ function HandleStructureConversion(teamId, deviceId, structureName, structureDef
     local success, structureData, failureData = CheckStructureWithTeam(teamId, deviceId, structureName, structureDef)
     if success then
         loggy("Test True: '" .. structureName .. "' structure found.", 1)
-        ConvertStructureStart(teamId, deviceId, structureName, structureData, targetDevice, isweapon)
+        ConvertStructureStart(teamId, deviceId, structureName, structureData, basedevice, targetDevice, isweapon)
     else
         loggy("Test False: Structure does not match '" .. structureName .. "'.", 1)
         if failureData then
@@ -145,10 +151,26 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		local basedevice = "control_panel"
         local structureName = "House"
         local structureDef = StructureDefinitions.House
-        --local targetDevice = StructureDefinitions.House.targetDevice
-		local targetDevice = "convfirebeam"
+        local targetDevice = StructureDefinitions.House.targetDevice
+		--local targetDevice = "convfirebeam"
 		local isweapon = false
 		
+		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+		
+	elseif saveName == "ecore_upgrade" then
+		local basedevice = "ecore"
+        local structureName = "WeaponFirebeam"
+		local structureDef = StructureDefinitions[structureName]
+		local targetDevice = structureDef.targetDevice
+		local isweapon = true 
+		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+		
+	elseif saveName == "kcore_upgrade" then
+		local basedevice = "kcore"
+        local structureName = "WeaponCannon"
+		local structureDef = StructureDefinitions[structureName]
+		local targetDevice = structureDef.targetDevice
+		local isweapon = true
 		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
 		
     elseif saveName == "test_device_log_structure" then
@@ -166,11 +188,11 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
         end
         UpgradeDevice(deviceId, "test_device")
 	elseif saveName == "tolaser" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "lasercpy")
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "laser")
 	elseif saveName == "tofirebeam" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "firebeamcpy")
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "firebeam")
 	elseif saveName == "tocannon" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "cannoncpy")
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, "cannon")
     end
 end
 

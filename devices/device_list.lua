@@ -58,15 +58,6 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 			Button = "hud-upgrade-log",
 		},
 		{
-            Enabled = false,
-            SaveName = "convfirebeam",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-            Button = "hud-upgrade-log",
-			Prerequisite = nil,
-        },
-		{
 			Enabled = false,
 			SaveName = "test_device",
 			MetalCost = 0,
@@ -92,15 +83,6 @@ if controlPanelUpgrade then
             EnergyCost = 0,
             BuildDuration = 0.1,
 			Button = "hud-upgrade-log",
-        },
-		{
-            Enabled = false,
-            SaveName = "convfirebeam",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-            Button = "hud-upgrade-log",
-			Prerequisite = nil,
         },
     }
     table.insert(Devices, controlPanelUpgrade)
@@ -235,6 +217,15 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 			BuildDuration = 1,
 			Button = "hud-upgrade-log",
 		},
+		{
+            Enabled = false,
+            SaveName = "convfirebeam",
+            MetalCost = 0,
+            EnergyCost = 0,
+            BuildDuration = 0.1,
+            Button = "hud-upgrade-log",
+			Prerequisite = nil,
+        },
 	},
 })
 

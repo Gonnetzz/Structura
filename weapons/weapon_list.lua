@@ -42,10 +42,22 @@ function CreateWeaponCopies(upgradeNames)
     end
 end
 
+function UpdateWeapons(upgradeNames)
+    for _, name in ipairs(upgradeNames) do
+        local target = string.sub(name, 3)
+
+        local baseWeapon = FindWeapon(target)
+        if baseWeapon then
+            baseWeapon.Prerequisite = nil
+            baseWeapon.Enabled = false
+        end
+    end
+end
+
 
 --local upgradeNames = { "tolaser", "tofirebeam", "tocannon", "to20mm" }
 local upgradeNames = { "tolaser", "tofirebeam", "tocannon"}
-CreateWeaponCopies(upgradeNames)
+UpdateWeapons(upgradeNames)
 
 local gunner = FindWeapon("machinegun")
 local patchgunner = DeepCopy(gunner)
@@ -54,6 +66,8 @@ if patchgunner then
 	patchgunner.SaveName = "patchgunner"
 	patchgunner.BuildTimeComplete = 0
 	patchgunner.Enabled = true
+	patchgunner.MetalCost = 0
+	patchgunner.EnergyCost = 0
 	patchgunner.Upgrades = {}
     for _, name in ipairs(upgradeNames) do
         table.insert(patchgunner.Upgrades, {
@@ -79,7 +93,7 @@ for _, name in ipairs(upgradeNames) do
 		tmpgunner.Upgrades = {
             {
                 Enabled = true,
-                SaveName = target .. "cpy",
+                SaveName = target,
                 MetalCost = 0,
                 EnergyCost = 0,
                 BuildDuration = 0.1,
