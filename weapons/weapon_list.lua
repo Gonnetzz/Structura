@@ -54,9 +54,15 @@ function UpdateWeapons(upgradeNames)
     end
 end
 
+local weaponNames = { "laser", "firebeam", "magnabeam", "cannon", "cannon20mm", "howitzer" }
+local upgradeNames = {}
 
---local upgradeNames = { "tolaser", "tofirebeam", "tocannon", "to20mm" }
-local upgradeNames = { "tolaser", "tofirebeam", "tocannon"}
+for _, name in ipairs(weaponNames) do
+    if FindWeapon(name) then
+        table.insert(upgradeNames, "to" .. name)
+    end
+end
+
 UpdateWeapons(upgradeNames)
 
 local gunner = FindWeapon("machinegun")
@@ -66,6 +72,7 @@ if patchgunner then
 	patchgunner.SaveName = "patchgunner"
 	patchgunner.BuildTimeComplete = 0
 	patchgunner.Enabled = true
+	patchgunner.FileName = path .. "/weapons/tmpgunner.lua"
 	patchgunner.MetalCost = 0
 	patchgunner.EnergyCost = 0
 	patchgunner.Upgrades = {}
@@ -87,7 +94,6 @@ for _, name in ipairs(upgradeNames) do
         tmpgunner.SaveName = name
         tmpgunner.FileName = path .. "/weapons/tmpgunner.lua"
         tmpgunner.Enabled = false
-		tmpgunner.BuildTimeComplete = 2
 		
 		local target = string.sub(name, 3)
 		tmpgunner.Upgrades = {

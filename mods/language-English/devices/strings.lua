@@ -4,28 +4,47 @@ Merge(Device,
 {
 	control_panel = L"Control Panel",
 	control_panelTip2 = L"Used to create a device from multi-tile structures",
-	control_panelTip3 = L"Requires: Upgrade Centre",
-	
-	upgrade_test_device_log_structureTip = L"Log Structure",
+	control_panel_upgrade = L"Check and Convert House Struct",
 	
 	ecore = L"Energized Core",
 	ecoreTip2 = L"Used to create Laserweaponry",
-	checkfirebeam = L"Check Firebeam",
-	buildfirebeam = L"Build Firebeam",
-	convfirebeam  = L"Convert Firebeam",
-	checklaser    = L"Check Laser",
-	buildlaser    = L"Build Laser",
-	convlaser     = L"Convert Laser",
-
-	
 	kcore = L"Kinetic Core",
 	kcoreTip2 = L"Used to create Kineticweaponry",
+	
+	checklaser    = L"Check Laser",
+    buildlaser    = L"Build Laser",
+    convlaser     = L"Convert Laser",
 
-	upgrade_create_house = L"Create House",
-    upgrade_create_houseTip2 = L"Create House",
-	upgrade_create_houseTip3 = L"Create House",
-    upgrade_create_weapon20mmTip3 = L"Create 20mm",
-    upgrade_create_weaponcanonTip = L"Create Canon",
-    upgrade_create_weaponfirebeamTip = L"Create Firebeam",
-    upgrade_create_weaponlaserTip = L"Create Laser"
+    checkfirebeam = L"Check Firebeam",
+    buildfirebeam = L"Build Firebeam",
+    convfirebeam  = L"Convert Firebeam",
+
+    checkmagnabeam = L"Check Magnabeam",
+    buildmagnabeam = L"Build Magnabeam",
+    convmagnabeam  = L"Convert Magnabeam",
+
+    checkcannon = L"Check Cannon",
+    buildcannon = L"Build Cannon",
+    convcannon  = L"Convert Cannon",
+
+    checkcannon20mm = L"Check Cannon20mm",
+    buildcannon20mm = L"Build Cannon20mm",
+    convcannon20mm  = L"Convert Cannon20mm",
+	
+    checkhowitzer = L"Check Howitzer",
+    buildhowitzer = L"Build Howitzer",
+    convhowitzer  = L"Convert Howitzer",
+
+	
+	test_device = L"TestDevice",
+	test_deviceTip2 = L"Used for creating Structs",
+	test_device_log_structure = L"Log Structure In Chat",
+	create_house = L"Create House",
+	create_weaponfirebeam = L"Create WeaponFirebeam",
+    create_weaponlaser = L"Create WeaponLaser",
+	create_weaponcannon = L"Create WeaponCannon",
+    create_weapon20mm = L"Create Weapon20mm",
+	
+	patchgunner = L"Mod Helper",
+	patchgunnerTip2 = L"No function, has to be there for the mod to work",
 })

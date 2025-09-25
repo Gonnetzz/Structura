@@ -147,7 +147,45 @@ function HandleStructureConversion(teamId, deviceId, structureName, structureDef
 end
 
 function OnDeviceCompleted(teamId, deviceId, saveName)
-    if saveName == "control_panel_upgrade" then
+	local weaponNames = { "laser", "firebeam", "magnabeam", "cannon", "cannon20mm", "howitzer" }
+	local weaponNamesBig = { "Laser", "Firebeam", "Magnabeam", "Cannon", "Cannon20mm", "Howitzer" }
+	local baseDevices = { "ecore", "ecore", "ecore", "kcore", "kcore", "kcore" }
+	local weaponMap = {}
+	local checkMap = {}
+	local buildMap = {}
+	
+	for _, name in ipairs(weaponNames) do
+		weaponMap["to" .. name] = name
+	end
+	for i, name in ipairs(weaponNames) do
+		local entry = { structure = "Weapon" .. weaponNamesBig[i], basedevice = baseDevices[i] }
+		checkMap["check" .. name] = entry
+		buildMap["build" .. name] = entry
+	end
+
+	local weapon = weaponMap[saveName]
+	if weapon then
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, weapon)
+		
+	elseif checkMap[saveName] then
+		local info = checkMap[saveName]
+		local structureDef = StructureDefinitions[info.structure]
+		local targetDevice = structureDef.targetDevice
+		local isweapon = true
+		HandleStructureConversion(teamId, deviceId, info.structure, structureDef, info.basedevice, targetDevice, isweapon)
+
+	elseif buildMap[saveName] then
+		local info = buildMap[saveName]
+		local def = StructureDefinitions[info.structure]
+		CreateStructureFromDefinition(deviceId, def, teamId)
+		UpgradeDevice(deviceId, info.basedevice)
+		
+		
+		
+		
+		
+		
+	elseif saveName == "control_panel_upgrade" then
 		local basedevice = "control_panel"
         local structureName = "House"
         local structureDef = StructureDefinitions.House
@@ -155,40 +193,6 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		--local targetDevice = "convfirebeam"
 		local isweapon = false
 		
-		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
-		
-	elseif saveName == "checkfirebeam" then
-		local basedevice = "ecore"
-        local structureName = "WeaponFirebeam"
-		local structureDef = StructureDefinitions[structureName]
-		local targetDevice = structureDef.targetDevice
-		local isweapon = true 
-		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
-	elseif saveName == "buildfirebeam" then
-		local basedevice = "ecore"
-		local def = StructureDefinitions.WeaponFirebeam
-		CreateStructureFromDefinition(deviceId, def, teamId)
-		UpgradeDevice(deviceId, basedevice)
-	
-	elseif saveName == "checklaser" then
-		local basedevice = "ecore"
-        local structureName = "WeaponLaser"
-		local structureDef = StructureDefinitions[structureName]
-		local targetDevice = structureDef.targetDevice
-		local isweapon = true 
-		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
-	elseif saveName == "buildlaser" then
-		local basedevice = "ecore"
-		local def = StructureDefinitions.WeaponLaser
-		CreateStructureFromDefinition(deviceId, def, teamId)
-		UpgradeDevice(deviceId, basedevice)
-		
-	elseif saveName == "kcore_upgrade" then
-		local basedevice = "kcore"
-        local structureName = "WeaponCannon"
-		local structureDef = StructureDefinitions[structureName]
-		local targetDevice = structureDef.targetDevice
-		local isweapon = true
 		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
 		
     elseif saveName == "test_device_log_structure" then
@@ -205,12 +209,7 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
             end
         end
         UpgradeDevice(deviceId, "test_device")
-	elseif saveName == "tolaser" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "laser")
-	elseif saveName == "tofirebeam" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "firebeam")
-	elseif saveName == "tocannon" then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, "cannon")
+		
     end
 end
 

@@ -43,7 +43,7 @@ local function createUpgradeDummy(upgradeName, base)
     local upgraded = DeepCopy(basedevice)
     if upgraded then
         upgraded.SaveName = upgradeName
-        upgraded.FileName = path .. "/devices/ecore_upgrade.lua"
+        upgraded.FileName = path .. "/devices/"..base.."_upgrade.lua"
         upgraded.Enabled = false
         upgraded.ShowInEditor = false
         upgraded.Upgrades =
@@ -187,8 +187,7 @@ testdeviceLogUpgrade.Enabled = false
 testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
 table.insert(Devices, testdeviceLogUpgrade)
 
-local ecoreUpgradeBases = { "firebeam", "laser" }
-
+local ecoreUpgradeBases = { "firebeam", "laser", "magnabeam" }
 local ecoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
@@ -223,6 +222,9 @@ for _, base in ipairs(ecoreUpgradeBases) do
     end
 end
 
+local kcoreUpgradeBases = { "cannon", "cannon20mm", "howitzer" }
+local kcoreupgrades = {}
+
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
 {
 	SaveName = "kcore",
@@ -245,37 +247,16 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	HasDummy = false,
 	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
-	Upgrades =
-	{
-		{
-			Enabled = true,
-			SaveName = "kcore_upgrade",
-			MetalCost = 10,
-			EnergyCost = 10,
-			BuildDuration = 1,
-			Button = "hud-upgrade-log",
-		},
-	},
+	Upgrades = kcoreupgrades,
 })
 
-local kcore = FindDevice("kcore")
-local kcoreUpgrade = DeepCopy(kcore)
-if kcoreUpgrade then
-    kcoreUpgrade.SaveName = "kcore_upgrade"
-    kcoreUpgrade.FileName = path .. "/devices/kcore_upgrade.lua"
-    kcoreUpgrade.Enabled = false
-    kcoreUpgrade.ShowInEditor = false
-   
-    kcoreUpgrade.Upgrades =
-    {
-        {
-            Enabled = true,
-            SaveName = "kcore",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-			Button = "hud-upgrade-log",
-        },
-    }
-    table.insert(Devices, kcoreUpgrade)
+for _, base in ipairs(kcoreUpgradeBases) do
+    for _, prefix in ipairs({ "check", "build", "conv" }) do
+        table.insert(kcoreupgrades, makeUpgradeEntry(prefix, base))
+        createUpgradeDummy(prefix .. base, "kcore")
+    end
 end
+
+
+
+
