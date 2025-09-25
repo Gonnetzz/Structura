@@ -45,13 +45,32 @@ function makeweapon(teamId, weaponname, nodeA, nodeB, t)
 
 end
 
-function HandleSingleLink(conversionId, linkKey)
+function HandleSingleLink(conversionId, linkKey, saveName)
     local process = ConversionProcesses[conversionId]
     if not process or not process.pendingLinks then return end
 
-    loggy("Conversion " .. conversionId .. ": Manually handling single link " .. linkKey, 2)
+    loggy("Conversion " .. conversionId .. ": Manually handling single link " .. linkKey .. " (" .. saveName .. ")", 2)
 
     if process.pendingLinks[linkKey] then
+        local linkData = process.linkMap[linkKey]
+        if linkData and linkData.length and MaterialCostsAndReclaim[saveName] then
+            local linkLength = linkData.length
+            local data = MaterialCostsAndReclaim[saveName]
+            local metalToSubtract = linkLength * data.MetalReclaim
+            local energyToSubtract = linkLength * data.EnergyReclaim
+            if metalToSubtract > 0 or energyToSubtract > 0 then
+                local teamId = process.teamId
+                local currentRes = GetTeamResources(teamId)
+                if currentRes.metal >= metalToSubtract and currentRes.energy >= energyToSubtract then
+                    AddResources(teamId, Value(-metalToSubtract, -energyToSubtract), false, Vec3())
+                    loggy(string.format("  - Subtracting single link resources directly: Metal=%.2f, Energy=%.2f", metalToSubtract, energyToSubtract), 2)
+                else
+                    loggy("  - Insufficient resources for single link reclaim. Using debt system.", 1)
+                    ManageResourceDebt(teamId, metalToSubtract, energyToSubtract)
+                end
+            end
+        end
+        
         process.pendingLinks[linkKey] = nil
 
         local layerComplete = true
@@ -128,8 +147,9 @@ function ProcessNextDemolitionLayer(conversionId)
             if NodeLinkCount(link.nodeA) == 1 or NodeLinkCount(link.nodeB) == 1 then
                 loggy("Conversion " .. conversionId .. ": Detected single link " .. linkKey .. ". Scheduling manual handling.", 1)
                 process.pendingLinks[linkKey] = true
+				local materialName = GetLinkMaterialSaveName(link.nodeA, link.nodeB)
                 DestroyLink(process.teamId, link.nodeA, link.nodeB)
-                ScheduleCall(0.1, HandleSingleLink, conversionId, linkKey)
+                ScheduleCall(0.1, HandleSingleLink, conversionId, linkKey, materialName)
             else
                 process.pendingLinks[linkKey] = true
                 DestroyLink(process.teamId, link.nodeA, link.nodeB)
