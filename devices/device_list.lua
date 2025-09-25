@@ -26,6 +26,41 @@ function IndexOfDevice(saveName)
 	return #Devices
 end
 
+local function makeUpgradeEntry(prefix, base)
+    return {
+        Enabled = (prefix ~= "conv"),
+        SaveName = prefix .. base,
+        MetalCost = 0,
+        EnergyCost = 0,
+        BuildDuration = 0.1,
+        Button = "hud-upgrade-log",
+        Prerequisite = nil,
+    }
+end
+
+local function createUpgradeDummy(upgradeName, base)
+    local basedevice = FindDevice(base)
+    local upgraded = DeepCopy(basedevice)
+    if upgraded then
+        upgraded.SaveName = upgradeName
+        upgraded.FileName = path .. "/devices/ecore_upgrade.lua"
+        upgraded.Enabled = false
+        upgraded.ShowInEditor = false
+        upgraded.Upgrades =
+        {
+            {
+                Enabled = true,
+                SaveName = base,
+                MetalCost = 0,
+                EnergyCost = 0,
+                BuildDuration = 0.1,
+                Button = "hud-upgrade-log",
+            },
+        }
+        table.insert(Devices, upgraded)
+    end
+end
+
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
 {
 	SaveName = "control_panel",
@@ -86,39 +121,6 @@ if controlPanelUpgrade then
         },
     }
     table.insert(Devices, controlPanelUpgrade)
-end
-local cpfirebeam = DeepCopy(controlPanel)
-if cpfirebeam then
-    cpfirebeam.SaveName = "convfirebeam"
-    cpfirebeam.FileName = path .. "/devices/ecore.lua"
-    cpfirebeam.Enabled = false
-    cpfirebeam.ShowOnHUD = false
-    cpfirebeam.Prerequisite = nil
-    cpfirebeam.BuildTimeComplete = 0
-    cpfirebeam.CanMirrorFacing = true
-    cpfirebeam.ScrapPeriod = 0
-    cpfirebeam.MetalCost = 0
-    cpfirebeam.EnergyCost = 0
-    cpfirebeam.MetalRepairCost = 0
-    cpfirebeam.EnergyRepairCost = 0
-    cpfirebeam.MetalReclaimMin = 0
-    cpfirebeam.MetalReclaimMax = 0
-    cpfirebeam.EnergyReclaimMin = 0
-    cpfirebeam.EnergyReclaimMax = 0
-
-    cpfirebeam.Upgrades =
-    {
-        {
-            Enabled = true,
-            SaveName = "control_panel",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-            Button = "hud-upgrade-log",
-        },
-    }
-
-    table.insert(Devices, cpfirebeam)
 end
 
 local testDeviceUpgrades = {
@@ -185,70 +187,40 @@ testdeviceLogUpgrade.Enabled = false
 testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
 table.insert(Devices, testdeviceLogUpgrade)
 
+local ecoreUpgradeBases = { "firebeam", "laser" }
+
+local ecoreupgrades = {}
+
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
 {
-	SaveName = "ecore",
-	FileName = path .. "/devices/ecore.lua",
-	Icon = "hud-ecore-icon",
-	Detail = "hud-detail-ecore",
-	Prerequisite = "upgrade",
-	BuildTimeComplete = 3,
-	ScrapPeriod = 2,
-	MetalCost = 200,
-	EnergyCost = 800,
-	MetalRepairCost = 200,
-	EnergyRepairCost = 800,
-	MetalReclaimMin = 0,
-	MetalReclaimMax = 0,
-	EnergyReclaimMin = 0,
-	EnergyReclaimMax = 0,
-	MaxUpAngle = StandardMaxUpAngle,
-	BuildOnGroundOnly = false,
-	HasDummy = false,
-	ShowInEditor = true,
-	SelectEffect = "ui/hud/devices/ui_devices",
-	Upgrades =
-	{
-		{
-			Enabled = true,
-			SaveName = "ecore_upgrade",
-			MetalCost = 10,
-			EnergyCost = 10,
-			BuildDuration = 1,
-			Button = "hud-upgrade-log",
-		},
-		{
-            Enabled = false,
-            SaveName = "convfirebeam",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-            Button = "hud-upgrade-log",
-			Prerequisite = nil,
-        },
-	},
+    SaveName = "ecore",
+    FileName = path .. "/devices/ecore.lua",
+    Icon = "hud-ecore-icon",
+    Detail = "hud-detail-ecore",
+    Prerequisite = "upgrade",
+    BuildTimeComplete = 3,
+    ScrapPeriod = 2,
+    MetalCost = 200,
+    EnergyCost = 800,
+    MetalRepairCost = 200,
+    EnergyRepairCost = 800,
+    MetalReclaimMin = 0,
+    MetalReclaimMax = 0,
+    EnergyReclaimMin = 0,
+    EnergyReclaimMax = 0,
+    MaxUpAngle = StandardMaxUpAngle,
+    BuildOnGroundOnly = false,
+    HasDummy = false,
+    ShowInEditor = true,
+    SelectEffect = "ui/hud/devices/ui_devices",
+    Upgrades = ecoreupgrades,
 })
 
-local ecore = FindDevice("ecore")
-local ecoreUpgrade = DeepCopy(ecore)
-if ecoreUpgrade then
-    ecoreUpgrade.SaveName = "ecore_upgrade"
-    ecoreUpgrade.FileName = path .. "/devices/ecore_upgrade.lua"
-    ecoreUpgrade.Enabled = false
-    ecoreUpgrade.ShowInEditor = false
-   
-    ecoreUpgrade.Upgrades =
-    {
-        {
-            Enabled = true,
-            SaveName = "ecore",
-            MetalCost = 0,
-            EnergyCost = 0,
-            BuildDuration = 0.1,
-			Button = "hud-upgrade-log",
-        },
-    }
-    table.insert(Devices, ecoreUpgrade)
+for _, base in ipairs(ecoreUpgradeBases) do
+    for _, prefix in ipairs({ "check", "build", "conv" }) do
+        table.insert(ecoreupgrades, makeUpgradeEntry(prefix, base))
+        createUpgradeDummy(prefix .. base, "ecore")
+    end
 end
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,

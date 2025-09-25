@@ -10,7 +10,13 @@ Merge(Device,
 	
 	ecore = L"Energized Core",
 	ecoreTip2 = L"Used to create Laserweaponry",
-	ecore_upgrade = L"Firebeam",
+	checkfirebeam = L"Check Firebeam",
+	buildfirebeam = L"Build Firebeam",
+	convfirebeam  = L"Convert Firebeam",
+	checklaser    = L"Check Laser",
+	buildlaser    = L"Build Laser",
+	convlaser     = L"Convert Laser",
+
 	
 	kcore = L"Kinetic Core",
 	kcoreTip2 = L"Used to create Kineticweaponry",

@@ -90,54 +90,93 @@ function DelayedCreateDevice(teamId, saveName, fromId, toId, tValue)
 end
 
 function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
-    Log("CreateStructureFromDefinition: deviceId="..deviceId.." teamId="..teamId)
-
     local def
-    if teamId == 1 then
+    if teamId == 1 or not structureDefinition.mirrorable then
         def = structureDefinition
-        Log("Team "..teamId.." -> create normal structure")
     else
         def = MirrorStructureDefinition(structureDefinition)
-        Log("Team "..teamId.." -> create mirrored structure")
     end
 
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
     local nodeMap = { A = nodeA, B = nodeB }
-
+    
+    local linksToProcess = {}
     for _, linkDef in ipairs(def.links) do
-        local fromNodeId = nodeMap[linkDef.from]
-        local toNodeName = linkDef.to
-        if fromNodeId then
-            local fromPos = NodePosition(fromNodeId)
-            local angleRad = math.rad(linkDef.angle)
+        table.insert(linksToProcess, linkDef)
+    end
 
-            local dirX, dirY = 1, 0
-            local rotatedX = dirX * math.cos(angleRad) - dirY * math.sin(angleRad)
-            local rotatedY = dirX * math.sin(angleRad) + dirY * math.cos(angleRad)
+    local progressMadeInLoop = true
+    while #linksToProcess > 0 and progressMadeInLoop do
+        progressMadeInLoop = false
+        local remainingLinks = {}
 
-            local mag = Magnitude({x=rotatedX, y=rotatedY})
-            if mag == 0 then mag = 1 end
-            local unitX = rotatedX / mag
-            local unitY = rotatedY / mag
+        for _, linkDef in ipairs(linksToProcess) do
+            local fromNodeId = nodeMap[linkDef.from]
+            
+            if fromNodeId then
+                progressMadeInLoop = true
+                
+                local toNodeName = linkDef.to
+                local toNodeId = nodeMap[toNodeName]
 
-            local toPos = { x = fromPos.x + unitX * linkDef.length, y = fromPos.y + unitY * linkDef.length }
-            local toNodeId = nodeMap[toNodeName]
-
-            if toNodeId then
-                CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
-            else
-                local newNodeId = CreateNode(teamId, linkDef.material, fromNodeId, toPos)
-                if newNodeId > 0 then
-                    nodeMap[toNodeName] = newNodeId
-                    CreateLink(teamId, linkDef.material, fromNodeId, newNodeId)
+                if toNodeId then
+                    CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
                 else
-                    Log("Failed to create node. Error code: " .. newNodeId)
-                    return
+                    local fromPos = NodePosition(fromNodeId)
+                    local angleRad = math.rad(linkDef.angle)
+                    local dir = { x = math.cos(angleRad), y = math.sin(angleRad) }
+                    local toPos = { x = fromPos.x + dir.x * linkDef.length, y = fromPos.y + dir.y * linkDef.length }
+
+                    local newNodeId = CreateNode(teamId, linkDef.material, fromNodeId, toPos)
+                    
+                    if newNodeId > 0 then
+                        nodeMap[toNodeName] = newNodeId
+                        CreateLink(teamId, linkDef.material, fromNodeId, newNodeId)
+
+                        local bestCandidateId = -1
+                        local minDistance = 300.0
+                        
+                        local mainLinkVector = SubtractVectors(NodePosition(newNodeId), NodePosition(fromNodeId))
+
+                        for nodeName, existingNodeId in pairs(nodeMap) do
+                            if existingNodeId ~= newNodeId and existingNodeId ~= fromNodeId then
+                                if not IsNodeLinkedTo(newNodeId, existingNodeId) then
+                                    local distance = Magnitude(SubtractVectors(NodePosition(newNodeId), NodePosition(existingNodeId)))
+                                    
+                                    if distance < minDistance then
+                                        local candidateVector = SubtractVectors(NodePosition(existingNodeId), NodePosition(newNodeId))
+                                        local angleDiff = math.abs(SignedAngleBetweenVectors(mainLinkVector, candidateVector))
+                                        
+                                        if angleDiff > 20 and angleDiff < 160 then
+                                            minDistance = distance
+                                            bestCandidateId = existingNodeId
+                                        end
+                                    end
+                                end
+                            end
+                        end
+
+                        if bestCandidateId ~= -1 then
+                            CreateLink(teamId, "backbracing", newNodeId, bestCandidateId)
+                        end
+
+                    else
+                        Log("Failed to create node '"..tostring(toNodeName).."' from '"..tostring(linkDef.from).."'. Error code: " .. newNodeId)
+                        progressMadeInLoop = false 
+                        break
+                    end
                 end
+            else
+                table.insert(remainingLinks, linkDef)
             end
-        else
-            Log("Error: Node '"..tostring(linkDef.from).."' not found in nodeMap.")
+        end
+        
+        linksToProcess = remainingLinks
+        
+        if not progressMadeInLoop and #linksToProcess > 0 then
+            Log("Error: Could not process remaining links. First unprocessed link starts from: " .. tostring(linksToProcess[1].from))
+            break
         end
     end
 
@@ -146,15 +185,9 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
             local fromId = nodeMap[dev.onLink.from]
             local toId = nodeMap[dev.onLink.to]
             if fromId and toId then
-				ScheduleCall(6, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
-			--[[
-                local result = CreateDevice(teamId, dev.saveName, fromId, toId, dev.t or 0.5)
-                if not result then
-                    Log("Failed to create device: "..dev.saveName)
-                end
+                ScheduleCall(6, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
             else
                 Log("Error: Device nodes not found for "..tostring(dev.saveName))
-				--]]
             end
         end
     end

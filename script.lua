@@ -157,7 +157,7 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		
 		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
 		
-	elseif saveName == "ecore_upgrade" then
+	elseif saveName == "checkfirebeam" then
 		local basedevice = "ecore"
         local structureName = "WeaponFirebeam"
 		local structureDef = StructureDefinitions[structureName]
