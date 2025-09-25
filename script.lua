@@ -164,6 +164,24 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		local targetDevice = structureDef.targetDevice
 		local isweapon = true 
 		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+	elseif saveName == "buildfirebeam" then
+		local basedevice = "ecore"
+		local def = StructureDefinitions.WeaponFirebeam
+		CreateStructureFromDefinition(deviceId, def, teamId)
+		UpgradeDevice(deviceId, basedevice)
+	
+	elseif saveName == "checklaser" then
+		local basedevice = "ecore"
+        local structureName = "WeaponLaser"
+		local structureDef = StructureDefinitions[structureName]
+		local targetDevice = structureDef.targetDevice
+		local isweapon = true 
+		HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
+	elseif saveName == "buildlaser" then
+		local basedevice = "ecore"
+		local def = StructureDefinitions.WeaponLaser
+		CreateStructureFromDefinition(deviceId, def, teamId)
+		UpgradeDevice(deviceId, basedevice)
 		
 	elseif saveName == "kcore_upgrade" then
 		local basedevice = "kcore"
