@@ -7,7 +7,15 @@ Merge(Device,
 	control_panelTip3 = L"Requires: Upgrade Centre",
 	
 	upgrade_test_device_log_structureTip = L"Log Structure",
+	
+	ecore = L"Energized Core",
+	ecoreTip2 = L"Used to create Laserweaponry",
+	ecore_upgrade = L"Firebeam",
+	
+	kcore = L"Kinetic Core",
+	kcoreTip2 = L"Used to create Kineticweaponry",
 
+	upgrade_create_house = L"Create House",
     upgrade_create_houseTip2 = L"Create House",
 	upgrade_create_houseTip3 = L"Create House",
     upgrade_create_weapon20mmTip3 = L"Create 20mm",

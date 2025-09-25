@@ -30,7 +30,7 @@ BarrelLength = 60.0
 MinFireClearance = 500
 FireClearanceOffsetInner = 20
 FireClearanceOffsetOuter = 40
-ReloadTime = 10.5
+ReloadTime = 1000.5
 ReloadTimeIncludesBurst = false
 MinFireSpeed = 5000.0
 MaxFireSpeed = 5000.1
@@ -44,18 +44,15 @@ PanDuration = 0
 FireStdDev = 0.05
 FireStdDevAuto = 0.005
 Recoil = 20000
-EnergyFireCost = 30.0
-MetalFireCost = 2
+EnergyFireCost = 30000.0
+MetalFireCost = 20000
 ShowFireAngle = true
 RoundsEachBurst = 7
 RoundPeriod = 0.15
 CutOffEffects = true
 BeamDuration = 0.05
 ReloadFramePeriod = ReloadTime/11
-DisruptionBlocksFire = true -- applies when Moonshot enabled
-
--- these values are the defaults for all weapons
--- shown here just to demonstrate how to override them
+DisruptionBlocksFire = true
 DoorCloseDelay = 1
 AutofireCloseDoorTicks = DoorCloseDelay*25
 

@@ -45,6 +45,27 @@ function makeweapon(teamId, weaponname, nodeA, nodeB, t)
 
 end
 
+function HandleSingleLink(conversionId, linkKey)
+    local process = ConversionProcesses[conversionId]
+    if not process or not process.pendingLinks then return end
+
+    loggy("Conversion " .. conversionId .. ": Manually handling single link " .. linkKey, 2)
+
+    if process.pendingLinks[linkKey] then
+        process.pendingLinks[linkKey] = nil
+
+        local layerComplete = true
+        for k, v in pairs(process.pendingLinks) do
+            if v then layerComplete = false; break; end
+        end
+
+        if layerComplete then
+            loggy("Conversion " .. conversionId .. ": Layer " .. process.currentLayer .. " demolition complete (via single link).", 2)
+            ProcessNextDemolitionLayer(conversionId)
+        end
+    end
+end
+
 
 function ProcessNextDemolitionLayer(conversionId)
     local process = ConversionProcesses[conversionId]
@@ -104,15 +125,17 @@ function ProcessNextDemolitionLayer(conversionId)
     for _, linkKey in ipairs(layer) do
         local link = process.linkMap[linkKey]
         if link and NodeExists(link.nodeA) and NodeExists(link.nodeB) then
-            process.pendingLinks[linkKey] = true
-            DestroyLink(process.teamId, link.nodeA, link.nodeB)
+            if NodeLinkCount(link.nodeA) == 1 or NodeLinkCount(link.nodeB) == 1 then
+                loggy("Conversion " .. conversionId .. ": Detected single link " .. linkKey .. ". Scheduling manual handling.", 1)
+                process.pendingLinks[linkKey] = true
+                DestroyLink(process.teamId, link.nodeA, link.nodeB)
+                ScheduleCall(0.1, HandleSingleLink, conversionId, linkKey)
+            else
+                process.pendingLinks[linkKey] = true
+                DestroyLink(process.teamId, link.nodeA, link.nodeB)
+            end
+
         end
-    end
-    
-    local hasPending = false
-    for k, v in pairs(process.pendingLinks) do hasPending = true; break; end
-    if not hasPending then
-        ProcessNextDemolitionLayer(conversionId)
     end
 end
 
