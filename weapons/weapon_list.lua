@@ -49,16 +49,28 @@ function UpdateWeapons(upgradeNames)
         local baseWeapon = FindWeapon(target)
         if baseWeapon then
             baseWeapon.Prerequisite = nil
-            baseWeapon.Enabled = false
+            baseWeapon.Enabled = true
         end
     end
 end
 
-local weaponNames = { "laser", "firebeam", "magnabeam", "cannon", "cannon20mm", "howitzer" }
-local upgradeNames = {}
+local weaponNames = { "laser", "firebeam", "cannon", "cannon20mm" }
+if dlc1Var_Active then
+	local maggy = FindWeapon("magnabeam")
+	local howi = FindWeapon("howitzer")
+	if maggy then
+		table.insert(weaponNames, "magnabeam")
+	end
+	if howi then
+		table.insert(weaponNames, "howitzer")
+	end
+end
 
+
+local upgradeNames = {}
 for _, name in ipairs(weaponNames) do
-    if FindWeapon(name) then
+	local tmp = FindWeapon(name)
+    if tmp then
         table.insert(upgradeNames, "to" .. name)
     end
 end

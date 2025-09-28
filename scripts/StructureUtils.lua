@@ -22,9 +22,19 @@ StructureDefinitions = {
 			{ from = 3, to = 4, material = "bracing", length = 100.00, angle = 0.00 },
 		}
 	},
-	Weapon20mm = {
+	WeaponCannon20mm = {
 	    mirrorable = true,
-		targetDevice = "Weapon20mm",
+		targetDevice = "convcannon20mm",
+		links = {
+				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 4, material = "armour", length = 100.00, angle = 0.00 },
+				{ from = 3, to = 5, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 5, to = 6, material = "armour", length = 100.00, angle = 0.00 },
+		}
+	},
+	WeaponHowitzer = {
+	    mirrorable = true,
+		targetDevice = "convhowitzer",
 		links = {
 				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
 				{ from = 3, to = 4, material = "armour", length = 100.00, angle = 0.00 },
@@ -60,4 +70,14 @@ StructureDefinitions = {
 				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
 		}
 	},
+	WeaponMagnabeam = {
+	    mirrorable = true,
+		targetDevice = "convmagnabeam",
+		links = {
+				{ from = "B", to = 3, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 4, material = "armour", length = 50.00, angle = -90.00 },
+				{ from = 3, to = 5, material = "armour", length = 100.00, angle = 0.00 },
+		}
+	},
+	
 }

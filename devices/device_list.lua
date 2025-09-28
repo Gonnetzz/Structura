@@ -15,8 +15,6 @@ table.insert(Sprites, ButtonSprite("hud-kcore-icon", "HUD/KCore", nil, ButtonSpr
 table.insert(Sprites, ButtonSprite("hud-upgrade-log", "context/upgradeLog", nil, nil, nil, nil, path))
 table.insert(Sprites, ButtonSprite("hud-upgrade-create", "context/upgradeCreate", nil, nil, nil, nil, path))
 
-
-
 function IndexOfDevice(saveName)
 	for k,v in ipairs(Devices) do
 		if v.SaveName == saveName then
@@ -187,7 +185,10 @@ testdeviceLogUpgrade.Enabled = false
 testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
 table.insert(Devices, testdeviceLogUpgrade)
 
-local ecoreUpgradeBases = { "firebeam", "laser", "magnabeam" }
+local ecoreUpgradeBases = { "firebeam", "laser" }
+if dlc1Var_Active then
+    table.insert(ecoreUpgradeBases, "magnabeam")
+end
 local ecoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
@@ -222,7 +223,10 @@ for _, base in ipairs(ecoreUpgradeBases) do
     end
 end
 
-local kcoreUpgradeBases = { "cannon", "cannon20mm", "howitzer" }
+local kcoreUpgradeBases = { "cannon", "cannon20mm" }
+if dlc1Var_Active then
+    table.insert(kcoreUpgradeBases, "howitzer")
+end
 local kcoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,

@@ -84,13 +84,15 @@ function sUpgradeDevice(deviceId, toname)
 end
 
 function sCreateWeapon(teamId, devicename, nodeA, nodeB, t)
-	local result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
-	if result < 0 then
-		Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
-	else
-		loggy("createweapon successful. New device ID: " .. result, 1)
-		ScheduleCall(0.1, sUpgradeDevice, result, devicename)
-	end
+    local result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
+    if result == -8 then
+        loggy("Error: createweapon busy", 2)
+    elseif result < 0 then
+        Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
+    else
+        loggy("createweapon successful. New device ID: " .. result, 1)
+        ScheduleCall(0.1, sUpgradeDevice, result, devicename)
+    end
 end
 
 function OnDeviceCreated(teamId, deviceId, saveName, nodeA, nodeB, t, upgradedId)
@@ -107,6 +109,15 @@ function OnDeviceCreated(teamId, deviceId, saveName, nodeA, nodeB, t, upgradedId
 		elseif saveName == "convcannon" then
 			DestroyDeviceById(deviceId)
 			ScheduleCall(0.1, sCreateWeapon, teamId, "tocannon", nodeA, nodeB, t)
+		elseif saveName == "convcannon20mm" then
+			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tocannon20mm", nodeA, nodeB, t)
+		elseif saveName == "convmagnabeam" then
+			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tomagnabeam", nodeA, nodeB, t)
+		elseif saveName == "convhowitzer" then
+			DestroyDeviceById(deviceId)
+			ScheduleCall(0.1, sCreateWeapon, teamId, "tohowitzer", nodeA, nodeB, t)
         end
     end
 end
