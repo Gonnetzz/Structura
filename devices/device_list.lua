@@ -17,6 +17,32 @@ table.insert(Sprites, ButtonSprite("hud-upgrade-create", "context/upgradeCreate"
 
 local weaponNames = { "laser", "firebeam", "cannon", "cannon20mm", "magnabeam", "howitzer" }
 
+local upgradeCosts = {
+    default = {
+        check = { MetalCost = 100, EnergyCost = 1000 },
+        build = { MetalCost = 130, EnergyCost = 760 },
+        conv  = { MetalCost = 0, EnergyCost = 0 },
+    },
+    firebeam = {
+        check = { MetalCost = 40, EnergyCost = 2700 },
+    },
+    laser = {
+        check = { MetalCost = 640, EnergyCost = 5700 },
+    },
+    magnabeam = {
+		check = { MetalCost = 240, EnergyCost = 4700 },
+    },
+	cannon20mm = {
+		check = { MetalCost = 60, EnergyCost = 3550 },
+    },
+	cannon = {
+		check = { MetalCost = 360, EnergyCost = 4550 },
+    },
+	howitzer = {
+		check = { MetalCost = 460, EnergyCost = 8550 },
+    },
+}
+
 for _, weapon in ipairs(weaponNames) do
     table.insert(Sprites, ButtonSprite(
         "hud-build-" .. weapon,
@@ -47,11 +73,13 @@ function makeUpgradeEntry(prefix, base)
 	else
 		buttonName = "hud-" .. prefix .. "-" .. base
 	end
+	local weaponCosts = upgradeCosts[base] or upgradeCosts["default"]
+    local costEntry = weaponCosts[prefix] or upgradeCosts["default"][prefix]
     return {
         Enabled = (prefix ~= "conv"),
         SaveName = prefix .. base,
-        MetalCost = 0,
-        EnergyCost = 0,
+        MetalCost = costEntry.MetalCost,
+        EnergyCost = costEntry.EnergyCost,
         BuildDuration = 0.1,
         Button = buttonName,
         Prerequisite = nil,
