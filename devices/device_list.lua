@@ -15,6 +15,23 @@ table.insert(Sprites, ButtonSprite("hud-kcore-icon", "HUD/KCore", nil, ButtonSpr
 table.insert(Sprites, ButtonSprite("hud-upgrade-log", "context/upgradeLog", nil, nil, nil, nil, path))
 table.insert(Sprites, ButtonSprite("hud-upgrade-create", "context/upgradeCreate", nil, nil, nil, nil, path))
 
+local weaponNames = { "laser", "firebeam", "cannon", "cannon20mm", "magnabeam", "howitzer" }
+
+for _, weapon in ipairs(weaponNames) do
+    table.insert(Sprites, ButtonSprite(
+        "hud-build-" .. weapon,
+        "context/" .. weapon .. "Construct",
+        nil, nil, nil, nil, path
+    ))
+
+    table.insert(Sprites, ButtonSprite(
+        "hud-check-" .. weapon,
+        "context/" .. weapon .. "Convert",
+        nil, nil, nil, nil, path
+    ))
+end
+
+
 function IndexOfDevice(saveName)
 	for k,v in ipairs(Devices) do
 		if v.SaveName == saveName then
@@ -24,14 +41,20 @@ function IndexOfDevice(saveName)
 	return #Devices
 end
 
-local function makeUpgradeEntry(prefix, base)
+function makeUpgradeEntry(prefix, base)
+	local buttonName
+	if prefix == "conv" then
+		buttonName = "hud-upgrade-log"
+	else
+		buttonName = "hud-" .. prefix .. "-" .. base
+	end
     return {
         Enabled = (prefix ~= "conv"),
         SaveName = prefix .. base,
         MetalCost = 0,
         EnergyCost = 0,
         BuildDuration = 0.1,
-        Button = "hud-upgrade-log",
+        Button = buttonName,
         Prerequisite = nil,
     }
 end
