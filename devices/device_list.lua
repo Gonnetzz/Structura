@@ -31,7 +31,6 @@ for _, weapon in ipairs(weaponNames) do
     ))
 end
 
-
 function IndexOfDevice(saveName)
 	for k,v in ipairs(Devices) do
 		if v.SaveName == saveName then
@@ -208,10 +207,7 @@ testdeviceLogUpgrade.Enabled = false
 testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
 table.insert(Devices, testdeviceLogUpgrade)
 
-local ecoreUpgradeBases = { "firebeam", "laser" }
-if dlc1Var_Active then
-    table.insert(ecoreUpgradeBases, "magnabeam")
-end
+local ecoreUpgradeBases = { "firebeam", "laser", "magnabeam" }
 local ecoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
@@ -246,10 +242,7 @@ for _, base in ipairs(ecoreUpgradeBases) do
     end
 end
 
-local kcoreUpgradeBases = { "cannon", "cannon20mm" }
-if dlc1Var_Active then
-    table.insert(kcoreUpgradeBases, "howitzer")
-end
+local kcoreUpgradeBases = { "cannon", "cannon20mm", "howitzer" }
 local kcoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,

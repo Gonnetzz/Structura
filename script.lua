@@ -33,11 +33,33 @@ function LogForSpec(teamId, msg)
     end
 end
 
+function disableUpgrades(prefixes, weaponList, baseDevice)
+	for _, weapon in ipairs(weaponList) do
+		if GetDeviceTypeIndex(weapon) == -1 then
+			loggy("Disabled: " .. weapon, 2)
+			for _, prefix in ipairs(prefixes) do
+				local upgradeSaveName = prefix .. weapon
+				for sideId = 1, 2 do
+					EnableDeviceUpgrade(baseDevice, upgradeSaveName, sideId, false)
+				end
+			end
+		end
+	end
+end
+
 CONVERSION_TIMEOUT = 30
 HIGHLIGHT_TIMEOUT = 5
 
 function Load(gameStart)
-    loggy("--- Loading Material Data for Archigebra Mod ---", 0)
+	local prefixes = { "check", "build", "conv" }
+	local weaponNamesEcore = { "laser", "firebeam", "magnabeam" }
+    local weaponNamesKcore = { "cannon", "cannon20mm", "howitzer" }
+	
+	disableUpgrades(prefixes, weaponNamesEcore, "ecore")
+    disableUpgrades(prefixes, weaponNamesKcore, "kcore")
+
+	
+    loggy("--- Loading Material Data ---", 2)
     local teamId = GetLocalTeamId()
     if teamId < 1 then teamId = 1 end
     local SupportedMaterials = {
@@ -45,18 +67,18 @@ function Load(gameStart)
         "lead", "uran", "uran2", "test_material"
     }
     for _, materialName in ipairs(SupportedMaterials) do
-        local metalCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalBuildCost", 0)
-        local energyCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyBuildCost", 0)
-        local metalReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalReclaim", 0)
-        local energyReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyReclaim", 0)
+        local metalCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalBuildCost", 2)
+        local energyCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyBuildCost", 2)
+        local metalReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalReclaim", 2)
+        local energyReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyReclaim", 2)
         MaterialCostsAndReclaim[materialName] = {
             MetalCost = metalCost, EnergyCost = energyCost,
             MetalReclaim = metalReclaimFactor, EnergyReclaim = energyReclaimFactor
         }
         loggy(string.format("Material: %-15s | MC:%.2f EC:%.2f | MR:%.2f ER:%.2f",
-            materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 0)
+            materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 2)
     end
-    loggy("--- Material Data Loaded ---", 0)
+    loggy("--- Material Data Loaded ---", 2)
 end
 
 function DisableHighlight(nodeA, nodeB)
