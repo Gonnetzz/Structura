@@ -268,8 +268,7 @@ function OnDeviceDeleted(teamId, deviceId, saveName, nodeA, nodeB, t)
     end
 
     if isConversionDevice then
-        local salvageRefundFactor = GetRule(teamId, "SalvageRefundFactor")
-        if salvageRefundFactor == nil or salvageRefundFactor == 0 then salvageRefundFactor = 0.5 end
+        local salvageRefundFactor = 0.5
         local costs = GetDeviceCost(saveName)
         if costs then
             local metalToSubtract = costs.metal * salvageRefundFactor
