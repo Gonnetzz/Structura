@@ -215,7 +215,30 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 	elseif buildMap[saveName] then
 		local info = buildMap[saveName]
 		local def = StructureDefinitions[info.structure]
-		CreateStructureFromDefinition(deviceId, def, teamId)
+		--CreateStructureFromDefinition(deviceId, def, teamId)
+		--UpgradeDevice(deviceId, info.basedevice)
+		
+		local mirroredDef = MirrorStructureDefinition(def)
+        local success, data = CheckStructure(deviceId, def, true)
+        local successMirrored, dataMirrored = CheckStructure(deviceId, mirroredDef, true)
+        
+        local chosenData = data
+        local chosenDef = def
+		
+		if successMirrored and (#dataMirrored.remainingLinks < #data.remainingLinks) then
+            loggy("Mirrored structure has better partial match, using it.", 2)
+            chosenData = dataMirrored
+            chosenDef = mirroredDef
+        end
+		
+		if chosenData and chosenData.nodeMap and chosenData.remainingLinks then
+            loggy("Found " .. count_keys(chosenData.nodeMap) .. " existing nodes. Building " .. #chosenData.remainingLinks .. " remaining links.", 1)
+            CreateStructureFromDefinition(deviceId, chosenDef, teamId, chosenData.nodeMap, chosenData.remainingLinks)
+        else
+            loggy("No existing structure parts found. Building from scratch.", 2)
+		    CreateStructureFromDefinition(deviceId, def, teamId)
+        end
+		
 		UpgradeDevice(deviceId, info.basedevice)
 		
 		

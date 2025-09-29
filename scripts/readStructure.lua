@@ -55,14 +55,14 @@ function CheckStructureWithTeam(teamId, deviceId, structureName, structureDefini
         secondaryDef = structureDefinition
     end
 
-    local success, data = CheckStructure(deviceId, primaryDef)
+    local success, data = CheckStructure(deviceId, primaryDef, false)
     if success then
         loggy("Structure matched (primary).", 1)
         data.structureName = structureName
         return true, data, nil
     else
         loggy("Primary check failed, trying secondary...", 2)
-        local success2, data2 = CheckStructure(deviceId, secondaryDef)
+        local success2, data2 = CheckStructure(deviceId, secondaryDef, false)
         if success2 then
             loggy("Structure matched (secondary).", 1)
             data2.structureName = structureName
@@ -78,7 +78,7 @@ function CheckStructureWithTeam(teamId, deviceId, structureName, structureDefini
     end
 end
 
-function CheckStructure(deviceId, structureDefinition)
+function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
     local nodeA, nodeB = GetDevicePlatformA(deviceId), GetDevicePlatformB(deviceId)
     if not nodeA or nodeA == 0 or not nodeB or nodeB == 0 then return false, { reason = "Invalid base platform" } end
     
@@ -119,6 +119,10 @@ function CheckStructure(deviceId, structureDefinition)
         end
         linksToProcess = remainingLinks
     end
+	
+	if partialMatchAllowed then
+        return true, { nodeMap = nodeMap, remainingLinks = linksToProcess }
+    end
     
     if #linksToProcess > 0 then
         return false, { reason = "Link missing/incorrect", failingLinkDef = linksToProcess[1], correctLinkKeys = checkedLinks, linkMap = linkMap, nodeMap = nodeMap }
@@ -148,3 +152,19 @@ function CheckStructure(deviceId, structureDefinition)
 
     return true, { deviceIds = foundDevices, linkNodePairs = foundLinks, nodeMap = nodeMap }
 end
+
+function GetLinkNodePairsFromMap(linkMap)
+    local pairs = {}
+    for _, link in pairs(linkMap) do
+        table.insert(pairs, { nodeA = link.nodeA, nodeB = link.nodeB })
+    end
+    return pairs
+end
+
+function count_keys(t)
+	local count = 0
+	for _ in pairs(t) do count = count + 1 end
+	return count
+end
+	
+	

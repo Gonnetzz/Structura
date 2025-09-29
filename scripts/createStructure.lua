@@ -89,7 +89,7 @@ function DelayedCreateDevice(teamId, saveName, fromId, toId, tValue)
     end
 end
 
-function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
+function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, existingNodeMap, linksToBuild)
     local sideId = teamId % MAX_SIDES
     local def
     if sideId == 1 or not structureDefinition.mirrorable then
@@ -101,11 +101,13 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
 
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
-    local nodeMap = { A = nodeA, B = nodeB }
+    local nodeMap = existingNodeMap or { A = nodeA, B = nodeB }
     
-    local linksToProcess = {}
-    for _, linkDef in ipairs(def.links) do
-        table.insert(linksToProcess, linkDef)
+    local linksToProcess = linksToBuild or {}
+    if #linksToProcess == 0 and not linksToBuild then
+        for _, linkDef in ipairs(def.links) do
+            table.insert(linksToProcess, linkDef)
+        end
     end
 
     local progressMadeInLoop = true
@@ -124,7 +126,9 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
                 local toNodeId = nodeMap[toNodeName]
 
                 if toNodeId then
-                    CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
+					if not IsNodeLinkedTo(fromNodeId, toNodeId) then
+                        CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
+                    end
                 else
                     local fromPos = NodePosition(fromNodeId)
                     local angleRad = math.rad(linkDef.angle)
