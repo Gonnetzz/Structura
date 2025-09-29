@@ -2,9 +2,9 @@
 
 dofile(path .. "/scripts/Math.lua")
 
-local LENGTH_TOLERANCE = 5.0
-local ANGLE_TOLERANCE = 5.0
-local DEVICE_T_TOLERANCE = 0.05
+local LENGTH_TOLERANCE = 15.0
+local ANGLE_TOLERANCE = 15.0
+local DEVICE_T_TOLERANCE = 0.2
 
 function FormatFailureReason(reason, linkDef)
     if not reason or not linkDef then return "Unknown structure error" end
@@ -46,7 +46,8 @@ end
 function CheckStructureWithTeam(teamId, deviceId, structureName, structureDefinition)
     loggy("CheckStructureWithTeam: TeamId="..teamId.." DeviceId="..deviceId, 1)
     local primaryDef, secondaryDef
-    if teamId == 1 then
+	local sideId = teamId % MAX_SIDES
+    if sideId == 1 then
         primaryDef = structureDefinition
         secondaryDef = MirrorStructureDefinition(structureDefinition)
     else
