@@ -13,7 +13,7 @@ MaterialCostsAndReclaim = {
 }
 ResourceDebt = {}
 
-DEBUG = true
+DEBUG = false
 DEBUG_LEVEL = 3
 
 function loggy(msg, level)
@@ -231,11 +231,11 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
             chosenDef = mirroredDef
         end
 		
-		if chosenData and chosenData.nodeMap and chosenData.remainingLinks then
+		if chosenData and chosenData.nodeMap and count_keys(chosenData.nodeMap) > 2 then
             loggy("Found " .. count_keys(chosenData.nodeMap) .. " existing nodes. Building " .. #chosenData.remainingLinks .. " remaining links.", 1)
             CreateStructureFromDefinition(deviceId, chosenDef, teamId, chosenData.nodeMap, chosenData.remainingLinks)
         else
-            loggy("No existing structure parts found. Building from scratch.", 2)
+            loggy("No existing structure parts found. Building from scratch.", 1)
 		    CreateStructureFromDefinition(deviceId, def, teamId)
         end
 		

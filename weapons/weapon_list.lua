@@ -49,7 +49,7 @@ function UpdateWeapons(upgradeNames)
         local baseWeapon = FindWeapon(target)
         if baseWeapon then
             baseWeapon.Prerequisite = nil
-            baseWeapon.Enabled = true
+            baseWeapon.Enabled = false
         end
     end
 end

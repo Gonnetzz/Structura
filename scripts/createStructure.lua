@@ -98,7 +98,6 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
         def = MirrorStructureDefinition(structureDefinition)
     end
 
-
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
     local nodeMap = existingNodeMap or { A = nodeA, B = nodeB }
