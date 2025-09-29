@@ -82,20 +82,22 @@ function DelayedCreateDevice(teamId, saveName, fromId, toId, tValue)
     if NodeExists(fromId) and NodeExists(toId) then
         local result = CreateDevice(teamId, saveName, fromId, toId, tValue)
         if result < 0 then
-            Log("Delayed creation of device '" .. saveName .. "' failed. Error code: " .. result)
+            loggy("Delayed creation of device '" .. saveName .. "' failed. Error code: " .. result, 0)
         end
     else
-        Log("Delayed creation of device '" .. saveName .. "' cancelled: one of the nodes was destroyed.")
+        LogForPlayer(teamId,"Delayed creation of device '" .. saveName .. "' cancelled: one of the nodes was destroyed.")
     end
 end
 
 function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
+    local sideId = teamId % MAX_SIDES
     local def
-    if teamId == 1 or not structureDefinition.mirrorable then
+    if sideId == 1 or not structureDefinition.mirrorable then
         def = structureDefinition
     else
         def = MirrorStructureDefinition(structureDefinition)
     end
+
 
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
@@ -107,6 +109,7 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
     end
 
     local progressMadeInLoop = true
+	local logremerror = true
     while #linksToProcess > 0 and progressMadeInLoop do
         progressMadeInLoop = false
         local remainingLinks = {}
@@ -161,8 +164,11 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
                             CreateLink(teamId, "backbracing", newNodeId, bestCandidateId)
                         end
 
-                    else
-                        Log("Failed to create node '"..tostring(toNodeName).."' from '"..tostring(linkDef.from).."'. Error code: " .. newNodeId)
+                    elseif newNodeId == -4 then
+						LogForPlayer(teamId,"Insufficient Funds for Structure creation")
+						logremerror = false
+					else
+                        loggy("Failed to create node '"..tostring(toNodeName).."' from '"..tostring(linkDef.from).."'. Error code: " .. newNodeId, 0)
                         progressMadeInLoop = false 
                         break
                     end
@@ -175,7 +181,9 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
         linksToProcess = remainingLinks
         
         if not progressMadeInLoop and #linksToProcess > 0 then
-            Log("Error: Could not process remaining links. First unprocessed link starts from: " .. tostring(linksToProcess[1].from))
+			if logremerror then
+				loggy("Error: Could not process remaining links. First unprocessed link starts from: " .. tostring(linksToProcess[1].from), 0)
+			end
             break
         end
     end
@@ -187,7 +195,7 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId)
             if fromId and toId then
                 ScheduleCall(6, DelayedCreateDevice, teamId, dev.saveName, fromId, toId, dev.t or 0.5)
             else
-                Log("Error: Device nodes not found for "..tostring(dev.saveName))
+                loggy("Error: Device nodes not found for "..tostring(dev.saveName), 0)
             end
         end
     end

@@ -53,9 +53,12 @@ function HandleSingleLink(conversionId, linkKey, saveName)
 
     if process.pendingLinks[linkKey] then
         local linkData = process.linkMap[linkKey]
-        if linkData and linkData.length and MaterialCostsAndReclaim[saveName] then
+		local teamId = process.teamId
+        local sideId = teamId % MAX_SIDES
+        local teamMaterialData = MaterialCostsAndReclaim[sideId]
+        if linkData and linkData.length and teamMaterialData and teamMaterialData[saveName] then
             local linkLength = linkData.length
-            local data = MaterialCostsAndReclaim[saveName]
+            local data = teamMaterialData[saveName]
             local metalToSubtract = linkLength * data.MetalReclaim
             local energyToSubtract = linkLength * data.EnergyReclaim
             if metalToSubtract > 0 or energyToSubtract > 0 then

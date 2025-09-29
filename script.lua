@@ -7,7 +7,10 @@ dofile(path .. "/scripts/createStructure.lua")
 dofile(path .. "/scripts/ConvertStruct.lua")
 dofile(path .. "/scripts/bank.lua")
 
-MaterialCostsAndReclaim = {}
+MaterialCostsAndReclaim = {
+    [TEAM_1] = {},
+    [TEAM_2] = {},
+}
 ResourceDebt = {}
 
 DEBUG = true
@@ -58,27 +61,29 @@ function Load(gameStart)
 	disableUpgrades(prefixes, weaponNamesEcore, "ecore")
     disableUpgrades(prefixes, weaponNamesKcore, "kcore")
 
-	
-    loggy("--- Loading Material Data ---", 2)
-    local teamId = GetLocalTeamId()
-    if teamId < 1 then teamId = 1 end
-    local SupportedMaterials = {
+	local SupportedMaterials = {
         "bracing", "backbracing", "armour", "door", "rope", "portal", "shield",
         "lead", "uran", "uran2", "test_material"
     }
-    for _, materialName in ipairs(SupportedMaterials) do
-        local metalCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalBuildCost", 2)
-        local energyCost = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyBuildCost", 2)
-        local metalReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "MetalReclaim", 2)
-        local energyReclaimFactor = GetMaterialValue(materialName, teamId, COMMANDER_CURRENT, "EnergyReclaim", 2)
-        MaterialCostsAndReclaim[materialName] = {
-            MetalCost = metalCost, EnergyCost = energyCost,
-            MetalReclaim = metalReclaimFactor, EnergyReclaim = energyReclaimFactor
-        }
-        loggy(string.format("Material: %-15s | MC:%.2f EC:%.2f | MR:%.2f ER:%.2f",
-            materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 2)
+    for sideId = 1, 2 do
+        loggy("--- Loading Data for Team " .. sideId .. " ---", 2)
+        if not MaterialCostsAndReclaim[sideId] then MaterialCostsAndReclaim[sideId] = {} end
+
+        for _, materialName in ipairs(SupportedMaterials) do
+            local metalCost = GetMaterialValue(materialName, sideId, COMMANDER_CURRENT, "MetalBuildCost", 0)
+            local energyCost = GetMaterialValue(materialName, sideId, COMMANDER_CURRENT, "EnergyBuildCost", 0)
+            local metalReclaimFactor = GetMaterialValue(materialName, sideId, COMMANDER_CURRENT, "MetalReclaim", 0)
+            local energyReclaimFactor = GetMaterialValue(materialName, sideId, COMMANDER_CURRENT, "EnergyReclaim", 0)
+            
+            MaterialCostsAndReclaim[sideId][materialName] = {
+                MetalCost = metalCost, EnergyCost = energyCost,
+                MetalReclaim = metalReclaimFactor, EnergyReclaim = energyReclaimFactor
+            }
+            loggy(string.format("Team %d - Material: %-15s | MC:%.2f EC:%.2f | MR:%.2f ER:%.2f",
+                sideId, materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 2)
+        end
     end
-    loggy("--- Material Data Loaded ---", 2)
+    loggy("--- All Material Data Loaded ---", 2)
 end
 
 function DisableHighlight(nodeA, nodeB)
@@ -294,11 +299,13 @@ function OnLinkDestroyed(teamId, saveName, nodeA, nodeB, breakType)
         if process.pendingLinks and process.pendingLinks[linkKey] then
             loggy("Conversion " .. id .. ": Link " .. linkKey .. " ("..saveName..") confirmed destroyed.", 2)
             process.pendingLinks[linkKey] = nil
-            if breakType == LINKBREAK_DELETE and MaterialCostsAndReclaim[saveName] then
+			local sideId = teamId % MAX_SIDES
+			local teamMaterialData = MaterialCostsAndReclaim[sideId]
+            if breakType == LINKBREAK_DELETE and teamMaterialData and teamMaterialData[saveName] then
                 local linkData = process.linkMap[linkKey]
                 if linkData and linkData.length then
                     local linkLength = linkData.length
-                    local data = MaterialCostsAndReclaim[saveName]
+                    local data = teamMaterialData[saveName]
                     local metalToSubtract = linkLength * data.MetalReclaim
                     local energyToSubtract = linkLength * data.EnergyReclaim
                     if metalToSubtract > 0 or energyToSubtract > 0 then
