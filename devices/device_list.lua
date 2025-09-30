@@ -19,9 +19,9 @@ local weaponNames = { "laser", "firebeam", "cannon", "cannon20mm", "magnabeam", 
 
 local upgradeCosts = {
     default = {
-        check = { MetalCost = 100, EnergyCost = 1000 },
-        build = { MetalCost = 130, EnergyCost = 760 },
-        conv  = { MetalCost = 0, EnergyCost = 0 },
+        check = { MetalCost = 100, EnergyCost = 1000, BuildDuration = 0.1 },
+        build = { MetalCost = 130, EnergyCost = 760, BuildDuration = 0.1 },
+        conv  = { MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1 },
     },
     firebeam = {
         check = { MetalCost = 40, EnergyCost = 2700 },
@@ -80,7 +80,7 @@ function makeUpgradeEntry(prefix, base)
         SaveName = prefix .. base,
         MetalCost = costEntry.MetalCost,
         EnergyCost = costEntry.EnergyCost,
-        BuildDuration = 0.1,
+        BuildDuration = costEntry.BuildDuration,
         Button = buttonName,
         Prerequisite = nil,
     }

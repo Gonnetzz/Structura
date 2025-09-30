@@ -2,6 +2,7 @@ dofile("ui/uihelper.lua")
 dofile("scripts/type.lua")
 
 BuildQueueConcurrent = {}
+OriginalBuildTimes = {}
 
 StandardMaxUpAngle = 20
 ButtonSpriteBottom = 0.664
@@ -50,6 +51,7 @@ function UpdateWeapons(upgradeNames)
         if baseWeapon then
             baseWeapon.Prerequisite = nil
             baseWeapon.Enabled = false
+			OriginalBuildTimes[target] = baseWeapon.BuildTimeComplete or 10
         end
     end
 end
@@ -108,13 +110,18 @@ for _, name in ipairs(upgradeNames) do
         tmpgunner.Enabled = false
 		
 		local target = string.sub(name, 3)
+		local originalBuildTime = OriginalBuildTimes[target] or 10
+		local upgradeDuration = originalBuildTime - 10
+		if upgradeDuration < 0.1 then 
+			upgradeDuration = 0.1 
+		end
 		tmpgunner.Upgrades = {
             {
                 Enabled = true,
                 SaveName = target,
                 MetalCost = 0,
                 EnergyCost = 0,
-                BuildDuration = 0.1,
+                BuildDuration = upgradeDuration,
             }
         }
 
