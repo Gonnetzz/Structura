@@ -81,6 +81,9 @@ end
 function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
     local nodeA, nodeB = GetDevicePlatformA(deviceId), GetDevicePlatformB(deviceId)
     if not nodeA or nodeA == 0 or not nodeB or nodeB == 0 then return false, { reason = "Invalid base platform" } end
+	
+	local baseVector = SubtractVectors(NodePosition(nodeB), NodePosition(nodeA))
+    local baseAngle = SignedAngleBetweenVectors({x=1, y=0}, baseVector)
     
     local nodeMap, checkedLinks, linkMap = { A = nodeA, B = nodeB }, {}, {}
     local linksToProcess = {}
@@ -100,8 +103,16 @@ function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
                     if not checkedLinks[linkKey] then
                         if GetLinkMaterialSaveName(fromNodeId, nextNodeId) == linkDef.material then
                             local vec = SubtractVectors(NodePosition(nextNodeId), NodePosition(fromNodeId))
+							
+							local absoluteAngle = SignedAngleBetweenVectors({x=1, y=0}, vec)
+                            local relativeAngle = absoluteAngle - baseAngle
+							
+							if relativeAngle > 180 then relativeAngle = relativeAngle - 360 end
+                            if relativeAngle < -180 then relativeAngle = relativeAngle + 360 end
+							
                             if math.abs(Magnitude(vec) - linkDef.length) < LENGTH_TOLERANCE and
-                               math.abs(SignedAngleBetweenVectors({x=1, y=0}, vec) - linkDef.angle) < ANGLE_TOLERANCE then
+                               math.abs(relativeAngle - linkDef.angle) < ANGLE_TOLERANCE then
+                                
                                 if not nodeMap[linkDef.to] or nodeMap[linkDef.to] == nextNodeId then
                                     nodeMap[linkDef.to] = nextNodeId
                                     checkedLinks[linkKey], linkMap[linkKey] = true, {nodeA = fromNodeId, nodeB = nextNodeId}

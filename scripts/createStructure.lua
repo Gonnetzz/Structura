@@ -14,6 +14,10 @@ function GenerateStructureDefinitionString(deviceId)
 
     nodeNameMap[nodeA] = "A"
     nodeNameMap[nodeB] = "B"
+	
+	local baseVector = SubtractVectors(NodePosition(nodeB), NodePosition(nodeA))
+    local baseAngle = SignedAngleBetweenVectors({x=1, y=0}, baseVector)
+    Log("--- Generating Structure Definition (relative to base angle: " .. string.format("%.2f", baseAngle) .. ") ---")
     
     local queue = {{id = nodeA, name = "A"}, {id = nodeB, name = "B"}}
     visitedNodes[nodeA] = true
@@ -40,12 +44,19 @@ function GenerateStructureDefinitionString(deviceId)
                 if material ~= "test_material" then
                     local vec = SubtractVectors(NodePosition(nextNodeId), NodePosition(current.id))
                     local len = Magnitude(vec)
-                    local ang = SignedAngleBetweenVectors({x=1,y=0}, vec)
+					
+					local absoluteAngle = SignedAngleBetweenVectors({x=1, y=0}, vec)
+                    local relativeAngle = absoluteAngle - baseAngle
+					
+					if relativeAngle > 180 then relativeAngle = relativeAngle - 360 end
+                    if relativeAngle < -180 then relativeAngle = relativeAngle + 360 end
+					
+                    --local ang = SignedAngleBetweenVectors({x=1,y=0}, vec)
                     
                     local fromName = (current.name == "A" or current.name == "B") and '"'..current.name..'"' or current.name
                     local toName = (nextNodeName == "A" or nextNodeName == "B") and '"'..nextNodeName..'"' or nextNodeName
                     
-                    table.insert(linksToLog, string.format("            { from = %s, to = %s, material = \"%s\", length = %.2f, angle = %.2f },", fromName, toName, material, len, ang))
+                    table.insert(linksToLog, string.format("            { from = %s, to = %s, material = \"%s\", length = %.2f, angle = %.2f },", fromName, toName, material, len, relativeAngle))
                     
                     local devId = GetDeviceIdOnPlatform(current.id, nextNodeId)
                     if devId and devId ~= -1 then
@@ -100,6 +111,11 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
 
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
+	
+	local baseVector = SubtractVectors(NodePosition(nodeB), NodePosition(nodeA))
+    local baseAngle = SignedAngleBetweenVectors({x=1, y=0}, baseVector)
+    loggy("Base link A-B angle: " .. baseAngle, 2)
+	
     local nodeMap = existingNodeMap or { A = nodeA, B = nodeB }
     
     local linksToProcess = linksToBuild or {}
@@ -130,7 +146,8 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
                     end
                 else
                     local fromPos = NodePosition(fromNodeId)
-                    local angleRad = math.rad(linkDef.angle)
+					local absoluteAngle = linkDef.angle + baseAngle
+                    local angleRad = math.rad(absoluteAngle)
                     local dir = { x = math.cos(angleRad), y = math.sin(angleRad) }
                     local toPos = { x = fromPos.x + dir.x * linkDef.length, y = fromPos.y + dir.y * linkDef.length }
 
@@ -138,7 +155,7 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
                     
                     if newNodeId > 0 then
                         nodeMap[toNodeName] = newNodeId
-                        CreateLink(teamId, linkDef.material, fromNodeId, newNodeId)
+                        --CreateLink(teamId, linkDef.material, fromNodeId, newNodeId)
 
                         local bestCandidateId = -1
                         local minDistance = 300.0

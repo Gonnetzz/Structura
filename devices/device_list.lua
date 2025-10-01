@@ -94,6 +94,7 @@ local function createUpgradeDummy(upgradeName, base)
         upgraded.FileName = path .. "/devices/"..base.."_upgrade.lua"
         upgraded.Enabled = false
         upgraded.ShowInEditor = false
+		upgraded.Prerequisite = nil--idk maybe new gameflow through tech selling
         upgraded.Upgrades =
         {
             {
@@ -129,6 +130,8 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
+	Enabled = false,
+	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades =
 	{
@@ -200,6 +203,7 @@ local testDeviceBase = {
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
+	Enabled = true,
 	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades = testDeviceUpgrades
@@ -244,7 +248,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
     FileName = path .. "/devices/ecore.lua",
     Icon = "hud-ecore-icon",
     Detail = "hud-detail-ecore",
-    Prerequisite = "upgrade",
+    Prerequisite = "factory",
     BuildTimeComplete = 3,
     ScrapPeriod = 2,
     MetalCost = 200,
@@ -279,7 +283,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	FileName = path .. "/devices/kcore.lua",
 	Icon = "hud-kcore-icon",
 	Detail = "hud-detail-kcore",
-	Prerequisite = "upgrade",
+	Prerequisite = "munitions",
 	BuildTimeComplete = 3,
 	ScrapPeriod = 2,
 	MetalCost = 200,

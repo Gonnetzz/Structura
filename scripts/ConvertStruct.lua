@@ -7,6 +7,34 @@ function GetLinkKey(nodeA, nodeB)
     if nodeA < nodeB then return nodeA .. "-" .. nodeB else return nodeB .. "-" .. nodeA end
 end
 
+function RefundFailedConv(teamId, structureName, refundFactor, reason)
+    if not teamId then return end
+
+    local lookupName = string.lower(string.gsub(structureName, "Weapon", ""))
+    
+    local costs = upgradeCosts[lookupName] or upgradeCosts["default"]
+    local costEntry = costs["check"] or upgradeCosts["default"]["check"]
+    
+    if structureName == "House" then
+        costEntry = { MetalCost = 10, EnergyCost = 10 } 
+    end
+
+    if costEntry then
+        local metalCost = costEntry.MetalCost or 0
+        local energyCost = costEntry.EnergyCost or 0
+        
+        if metalCost > 0 or energyCost > 0 then
+            local metalRefund = metalCost * refundFactor
+            local energyRefund = energyCost * refundFactor
+            
+            loggy(string.format("Refunding %.0f%% of check costs due to %s: M=%.2f, E=%.2f", refundFactor * 100, reason, metalRefund, energyRefund), 1)
+            AddResources(teamId, Value(metalRefund, energyRefund), false, Vec3())
+        end
+    else
+        loggy("Could not find cost entry for '" .. lookupName .. "' to process refund.", 0)
+    end
+end
+
 function TimeoutConversion(conversionId)
     local process = ConversionProcesses[conversionId]
     if not process then return end
@@ -15,6 +43,8 @@ function TimeoutConversion(conversionId)
     
     LogForSpec(process.teamId, string.format("Error: Failed Conversion for [%s] (Team: %d, Process: %d)", process.structureName, process.teamId, conversionId))
     
+	RefundFailedConv(process.teamId, process.structureName, 0.50, "timeout")
+	
     if GetLocalTeamId() % MAX_SIDES == process.teamId % MAX_SIDES then
         loggy("  - Disabling highlights for timed out process.", 2)
         for _, link in ipairs(process.linkNodePairs) do

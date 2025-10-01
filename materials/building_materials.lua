@@ -192,6 +192,8 @@ table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 	BuildEffect = "effects/build_armor.lua",
 	DestroyEffect = "effects/armor_destroy.lua",
 	FullExtrusion = true,
+	Enabled = false,
+	ShowInEditor = true,
 }))
 
 table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
@@ -221,6 +223,8 @@ table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 	BuildEffect = "effects/build_armor.lua",
 	DestroyEffect = "effects/armor_destroy.lua",
 	FullExtrusion = true,
+	Enabled = false,
+	ShowInEditor = true,
 }))
 table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 {
@@ -249,6 +253,8 @@ table.insert(Materials, IndexOfMaterial("armour") + 1, InheritMaterial(armour,
 	BuildEffect = "effects/build_armor.lua",
 	DestroyEffect = "effects/armor_destroy.lua",
 	FullExtrusion = true,
+	Enabled = false,
+	ShowInEditor = true,
 }))
 --[[
 local materialsToClone = {

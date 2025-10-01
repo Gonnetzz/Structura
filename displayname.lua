@@ -1,5 +1,5 @@
 DisplayName =
 {
-	['English'] = L"Archigebra",
+	['English'] = L"!!!Structura",
 	
 }

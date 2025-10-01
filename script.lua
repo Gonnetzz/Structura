@@ -11,6 +11,31 @@ MaterialCostsAndReclaim = {
     [TEAM_1] = {},
     [TEAM_2] = {},
 }
+upgradeCosts = {
+    default = {
+        check = { MetalCost = 100, EnergyCost = 1000, BuildDuration = 0.1 },
+        build = { MetalCost = 130, EnergyCost = 760, BuildDuration = 0.1 },
+        conv  = { MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1 },
+    },
+    firebeam = {
+        check = { MetalCost = 40, EnergyCost = 2700 },
+    },
+    laser = {
+        check = { MetalCost = 640, EnergyCost = 5700 },
+    },
+    magnabeam = {
+		check = { MetalCost = 240, EnergyCost = 4700 },
+    },
+	cannon20mm = {
+		check = { MetalCost = 60, EnergyCost = 3550 },
+    },
+	cannon = {
+		check = { MetalCost = 360, EnergyCost = 4550 },
+    },
+	howitzer = {
+		check = { MetalCost = 460, EnergyCost = 8550 },
+    },
+}
 ResourceDebt = {}
 
 DEBUG = false
@@ -83,7 +108,6 @@ function Load(gameStart)
                 sideId, materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 2)
         end
     end
-    loggy("--- All Material Data Loaded ---", 2)
 end
 
 function DisableHighlight(nodeA, nodeB)
@@ -152,10 +176,13 @@ end
 function HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
     local success, structureData, failureData = CheckStructureWithTeam(teamId, deviceId, structureName, structureDef)
     if success then
-        loggy("Test True: '" .. structureName .. "' structure found.", 1)
+        loggy("Test True: '" .. structureName .. "' structure found.", 2)
         ConvertStructureStart(teamId, deviceId, structureName, structureData, basedevice, targetDevice, isweapon)
     else
-        loggy("Test False: Structure does not match '" .. structureName .. "'.", 1)
+        loggy("Test False: Structure does not match '" .. structureName .. "'.", 2)
+		
+		RefundFailedConv(teamId, structureName, 0.75, "incorrect structure")
+		
         if failureData then
             local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue")
             if failureData.secondary 

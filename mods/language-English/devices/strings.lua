@@ -46,7 +46,4 @@ Merge(Device,
     create_weaponcannon20mm = L"Create 20mm",
 	create_weaponmagnabeam = L"Create Magmabeam",
 	create_weaponhowitzer = L"Create Howitzer",
-	
-	patchgunner = L"Mod Helper",
-	patchgunnerTip2 = L"No function, has to be there for the mod to work",
 })
