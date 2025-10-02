@@ -51,6 +51,7 @@ function UpdateWeapons(upgradeNames)
         if baseWeapon then
             baseWeapon.Prerequisite = nil
             baseWeapon.Enabled = false
+			baseWeapon.ShowInEditor = true
 			OriginalBuildTimes[target] = baseWeapon.BuildTimeComplete or 10
         end
     end

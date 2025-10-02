@@ -86,7 +86,7 @@ function makeUpgradeEntry(prefix, base)
     }
 end
 
-local function createUpgradeDummy(upgradeName, base)
+function createUpgradeDummy(upgradeName, base)
     local basedevice = FindDevice(base)
     local upgraded = DeepCopy(basedevice)
     if upgraded then
@@ -99,15 +99,39 @@ local function createUpgradeDummy(upgradeName, base)
         {
             {
                 Enabled = true,
-                SaveName = base,
+                SaveName = base .. "_internal", 
                 MetalCost = 0,
                 EnergyCost = 0,
                 BuildDuration = 0.1,
+				Prerequisite = nil,
                 Button = "hud-upgrade-log",
             },
         }
         table.insert(Devices, upgraded)
     end
+end
+
+function AddUpgradeAndDummy(upgradeList, prefix, weaponName, baseDeviceName)
+    local weaponCosts = upgradeCosts[weaponName] or upgradeCosts["default"]
+    local costEntry = weaponCosts[prefix] or upgradeCosts["default"][prefix]
+
+    local metalCost = costEntry.MetalCost
+    local energyCost = costEntry.EnergyCost
+
+    local buttonName = (prefix == "conv") and "hud-upgrade-log" or ("hud-" .. prefix .. "-" .. weaponName)
+    
+    local upgradeEntry = {
+        Enabled = (prefix ~= "conv"),
+        SaveName = prefix .. weaponName,
+        MetalCost = metalCost,
+        EnergyCost = energyCost,
+        BuildDuration = costEntry.BuildDuration or 0.1,
+        Button = buttonName,
+        Prerequisite = nil,
+    }
+    table.insert(upgradeList, upgradeEntry)
+
+    createUpgradeDummy(prefix .. weaponName, baseDeviceName, metalCost, energyCost)
 end
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
@@ -164,7 +188,7 @@ if controlPanelUpgrade then
     {
         {
             Enabled = true,
-            SaveName = "control_panel",
+            SaveName = "control_panel_internal",
             MetalCost = 0,
             EnergyCost = 0,
             BuildDuration = 0.1,
@@ -203,7 +227,7 @@ local testDeviceBase = {
 	MaxUpAngle = StandardMaxUpAngle,
 	BuildOnGroundOnly = false,
 	HasDummy = false,
-	Enabled = true,
+	Enabled = false,
 	ShowInEditor = true,
 	SelectEffect = "ui/hud/devices/ui_devices",
 	Upgrades = testDeviceUpgrades
@@ -269,8 +293,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 
 for _, base in ipairs(ecoreUpgradeBases) do
     for _, prefix in ipairs({ "check", "build", "conv" }) do
-        table.insert(ecoreupgrades, makeUpgradeEntry(prefix, base))
-        createUpgradeDummy(prefix .. base, "ecore")
+        AddUpgradeAndDummy(ecoreupgrades, prefix, base, "ecore")
     end
 end
 
@@ -304,8 +327,23 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 
 for _, base in ipairs(kcoreUpgradeBases) do
     for _, prefix in ipairs({ "check", "build", "conv" }) do
-        table.insert(kcoreupgrades, makeUpgradeEntry(prefix, base))
-        createUpgradeDummy(prefix .. base, "kcore")
+        AddUpgradeAndDummy(kcoreupgrades, prefix, base, "kcore")
+    end
+end
+
+
+local internalCopies = { "ecore", "kcore", "control_panel" }
+for _, baseName in ipairs(internalCopies) do
+    local baseDevice = FindDevice(baseName)
+    if baseDevice then
+        local internalCopy = DeepCopy(baseDevice)
+        internalCopy.SaveName = baseName .. "_internal"
+        internalCopy.Enabled = false
+        internalCopy.ShowInEditor = false
+        internalCopy.Prerequisite = nil
+        internalCopy.Upgrades = DeepCopy(baseDevice.Upgrades)
+
+        table.insert(Devices, internalCopy)
     end
 end
 

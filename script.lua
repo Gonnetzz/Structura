@@ -237,7 +237,7 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		local structureDef = StructureDefinitions[info.structure]
 		local targetDevice = structureDef.targetDevice
 		local isweapon = true
-		HandleStructureConversion(teamId, deviceId, info.structure, structureDef, info.basedevice, targetDevice, isweapon)
+		HandleStructureConversion(teamId, deviceId, info.structure, structureDef, info.basedevice.. "_internal", targetDevice, isweapon)
 
 	elseif buildMap[saveName] then
 		local info = buildMap[saveName]
@@ -266,7 +266,7 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 		    CreateStructureFromDefinition(deviceId, def, teamId)
         end
 		
-		UpgradeDevice(deviceId, info.basedevice)
+		UpgradeDevice(deviceId, info.basedevice.. "_internal")
 		
 		
 		
