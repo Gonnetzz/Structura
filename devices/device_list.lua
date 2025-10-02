@@ -338,10 +338,10 @@ for _, baseName in ipairs(internalCopies) do
     if baseDevice then
         local internalCopy = DeepCopy(baseDevice)
         internalCopy.SaveName = baseName .. "_internal"
+		internalCopy.FileName = path .. "/devices/"..baseName.."_upgrade.lua"
         internalCopy.Enabled = false
         internalCopy.ShowInEditor = false
         internalCopy.Prerequisite = nil
-        internalCopy.Upgrades = DeepCopy(baseDevice.Upgrades)
 
         table.insert(Devices, internalCopy)
     end
