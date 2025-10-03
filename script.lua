@@ -258,12 +258,18 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
             chosenDef = mirroredDef
         end
 		
-		if chosenData and chosenData.nodeMap and count_keys(chosenData.nodeMap) > 2 then
-            loggy("Found " .. count_keys(chosenData.nodeMap) .. " existing nodes. Building " .. #chosenData.remainingLinks .. " remaining links.", 1)
-            CreateStructureFromDefinition(deviceId, chosenDef, teamId, chosenData.nodeMap, chosenData.remainingLinks)
+		if chosenData and #chosenData.remainingLinks == 0 then
+            local errorMessage = "Structure is already complete. You can now use the 'Convert' upgrade button to transform it into a weapon."
+            LogForPlayer(teamId, errorMessage)
+        
         else
-            loggy("No existing structure parts found. Building from scratch.", 1)
-		    CreateStructureFromDefinition(deviceId, def, teamId)
+            if chosenData and chosenData.nodeMap and count_keys(chosenData.nodeMap) > 2 then
+                loggy("Found " .. count_keys(chosenData.nodeMap) .. " existing nodes. Building " .. #chosenData.remainingLinks .. " remaining links.", 1)
+                CreateStructureFromDefinition(deviceId, chosenDef, teamId, chosenData.nodeMap, chosenData.remainingLinks)
+            else
+                loggy("No existing structure parts found. Building from scratch.", 1)
+                CreateStructureFromDefinition(deviceId, def, teamId)
+            end
         end
 		
 		UpgradeDevice(deviceId, info.basedevice.. "_internal")
