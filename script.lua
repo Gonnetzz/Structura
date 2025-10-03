@@ -105,7 +105,7 @@ function Load(gameStart)
                 MetalReclaim = metalReclaimFactor, EnergyReclaim = energyReclaimFactor
             }
             loggy(string.format("Team %d - Material: %-15s | MC:%.2f EC:%.2f | MR:%.2f ER:%.2f",
-                sideId, materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 2)
+                sideId, materialName, metalCost, energyCost, metalReclaimFactor, energyReclaimFactor), 3)
         end
     end
 end
@@ -184,7 +184,7 @@ function HandleStructureConversion(teamId, deviceId, structureName, structureDef
 		RefundFailedConv(teamId, structureName, 0.75, "incorrect structure")
 		
         if failureData then
-            local errMsg = "Error: " .. (failureData.primary.reason or "Unknown issue")
+            local errMsg = "Error: Structure is incomplete: " .. (failureData.primary.reason or "Unknown issue")
             if failureData.secondary 
                 and failureData.secondary.reason 
                 and failureData.primary.reason ~= failureData.secondary.reason then

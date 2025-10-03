@@ -89,6 +89,24 @@ function GenerateStructureDefinitionString(deviceId)
     Log("------------------------------------")
 end
 
+function CheckFailedBuild(teamId, expectedLinks)
+    local buildFailed = false
+    for _, expectedLink in ipairs(expectedLinks) do
+        local actualMaterial = GetLinkMaterialSaveName(expectedLink.nodeA, expectedLink.nodeB)
+        
+        if actualMaterial == "" or actualMaterial ~= expectedLink.material then
+            buildFailed = true
+            loggy("Build check failed: Link " .. expectedLink.nodeA .. "-" .. expectedLink.nodeB .. " expected " .. expectedLink.material .. ", but found " .. tostring(actualMaterial), 1)
+            break 
+        end
+    end
+
+    if buildFailed then
+        local errorMessage = "Error: Failed to fully create the structure. Try moving the core device towards the middle of the base strut, or flip it to the other side, to ensure it can be built correctly."
+        LogForPlayer(teamId, errorMessage)
+    end
+end
+
 function DelayedCreateDevice(teamId, saveName, fromId, toId, tValue)
     if NodeExists(fromId) and NodeExists(toId) then
         local result = CreateDevice(teamId, saveName, fromId, toId, tValue)
@@ -142,7 +160,8 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
 
                 if toNodeId then
 					if not IsNodeLinkedTo(fromNodeId, toNodeId) then
-                        CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
+                        local linkresult = CreateLink(teamId, linkDef.material, fromNodeId, toNodeId)
+						--loggy("CreateLink: material=" .. tostring(linkDef.material) .. ", result=" .. tostring(linkresult), 2)--always -14
                     end
                 else
                     local fromPos = NodePosition(fromNodeId)
@@ -155,7 +174,7 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
                     
                     if newNodeId > 0 then
                         nodeMap[toNodeName] = newNodeId
-                        --CreateLink(teamId, linkDef.material, fromNodeId, newNodeId)
+                        --CreateLink(teamId, linkDef.material, fromNodeId, newNodeId) --alr done through createnode
 
                         local bestCandidateId = -1
                         local minDistance = 300.0
@@ -181,7 +200,8 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
                         end
 
                         if bestCandidateId ~= -1 then
-                            CreateLink(teamId, "backbracing", newNodeId, bestCandidateId)
+                            local linkresult = CreateLink(teamId, "backbracing", newNodeId, bestCandidateId)
+							--loggy("CreateLink: material=" .. tostring(linkDef.material) .. ", result=" .. tostring(linkresult), 2)--always -14
                         end
 
                     elseif newNodeId == -4 then
@@ -205,6 +225,26 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
 				loggy("Error: Could not process remaining links. First unprocessed link starts from: " .. tostring(linksToProcess[1].from), 0)
 			end
             break
+        end
+    end
+
+    local linksToCheck = linksToBuild or def.links
+    if #linksToCheck > 0 then
+        local expectedLinks = {}
+        for _, linkDef in ipairs(linksToCheck) do
+            local nodeIdA = nodeMap[linkDef.from]
+            local nodeIdB = nodeMap[linkDef.to]
+
+            if nodeIdA and nodeIdB then
+                table.insert(expectedLinks, {
+                    nodeA = nodeIdA,
+                    nodeB = nodeIdB,
+                    material = linkDef.material
+                })
+            end
+        end
+        if #expectedLinks > 0 then
+            ScheduleCall(0.1, CheckFailedBuild, teamId, expectedLinks)
         end
     end
 
