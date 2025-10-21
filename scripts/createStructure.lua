@@ -129,6 +129,8 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
 
     local nodeA = GetDevicePlatformA(deviceId)
     local nodeB = GetDevicePlatformB(deviceId)
+	local unsupportedNodes = {}
+	local currentBuildStep = 0
 	
 	local baseVector = SubtractVectors(NodePosition(nodeB), NodePosition(nodeA))
     local baseAngle = SignedAngleBetweenVectors({x=1, y=0}, baseVector)
@@ -176,33 +178,109 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
                         nodeMap[toNodeName] = newNodeId
                         --CreateLink(teamId, linkDef.material, fromNodeId, newNodeId) --alr done through createnode
 
-                        local bestCandidateId = -1
-                        local minDistance = 300.0
+						-- check1
+                        local bestImmediateCandidateId = -1
+                        local bestImmediateScore = -1
+                        local searchRadius = 350.0 -- i know its 200
                         
                         local mainLinkVector = SubtractVectors(NodePosition(newNodeId), NodePosition(fromNodeId))
-
+                        local newNodePos = NodePosition(newNodeId)
+						
                         for nodeName, existingNodeId in pairs(nodeMap) do
                             if existingNodeId ~= newNodeId and existingNodeId ~= fromNodeId then
                                 if not IsNodeLinkedTo(newNodeId, existingNodeId) then
-                                    local distance = Magnitude(SubtractVectors(NodePosition(newNodeId), NodePosition(existingNodeId)))
-                                    
-                                    if distance < minDistance then
-                                        local candidateVector = SubtractVectors(NodePosition(existingNodeId), NodePosition(newNodeId))
+                                    local distance = Magnitude(SubtractVectors(newNodePos, NodePosition(existingNodeId)))
+                                    if distance > 55 and distance < searchRadius then
+                                        local candidateVector = SubtractVectors(NodePosition(existingNodeId), newNodePos)
                                         local angleDiff = math.abs(SignedAngleBetweenVectors(mainLinkVector, candidateVector))
-                                        
                                         if angleDiff > 20 and angleDiff < 160 then
-                                            minDistance = distance
-                                            bestCandidateId = existingNodeId
+                                            local angleScore = math.sin(math.rad(angleDiff))
+                                            local distancePenalty = 1 - (distance / searchRadius)
+                                            local score = (angleScore * angleScore) * 0.7 + distancePenalty * 0.3
+                                            if score > bestImmediateScore then
+                                                bestImmediateScore = score
+                                                bestImmediateCandidateId = existingNodeId
+                                            end
                                         end
                                     end
                                 end
                             end
                         end
+						
+						if bestImmediateCandidateId ~= -1 then
+                            loggy("support for node " .. newNodeId .. " -> " .. bestImmediateCandidateId, 2)
+							CreateLink(teamId, "backbracing", newNodeId, bestImmediateCandidateId)
+						else
+                            --table.insert(unsupportedNodes, {nodeId = newNodeId, parentId = fromNodeId, addedAtStep = currentBuildStep})
+						end
+						--[[
+                        for i = #unsupportedNodes, 1, -1 do
+                            local waitingNode = unsupportedNodes[i]
+                            
+                            if waitingNode.addedAtStep < currentBuildStep then
+                                local bestSupportForWaitingNodeId = -1
+                                local bestSupportScore = -1
+                                local waitingNodePos = NodePosition(waitingNode.nodeId)
+                                local waitingMainLinkVector = SubtractVectors(waitingNodePos, NodePosition(waitingNode.parentId))
 
-                        if bestCandidateId ~= -1 then
-                            local linkresult = CreateLink(teamId, "backbracing", newNodeId, bestCandidateId)
-							--loggy("CreateLink: material=" .. tostring(linkDef.material) .. ", result=" .. tostring(linkresult), 2)--always -14
+                                for nodeName, existingNodeId in pairs(nodeMap) do
+                                    if existingNodeId ~= waitingNode.nodeId and existingNodeId ~= waitingNode.parentId then
+                                        if not IsNodeLinkedTo(waitingNode.nodeId, existingNodeId) then
+                                            local distance = Magnitude(SubtractVectors(waitingNodePos, NodePosition(existingNodeId)))
+                                            if distance > 55 and distance < searchRadius then
+                                                local candidateVector = SubtractVectors(NodePosition(existingNodeId), waitingNodePos)
+                                                local angleDiff = math.abs(SignedAngleBetweenVectors(waitingMainLinkVector, candidateVector))
+                                                if angleDiff > 20 and angleDiff < 160 then
+                                                    local angleScore = math.sin(math.rad(angleDiff))
+                                                    local distancePenalty = 1 - (distance / searchRadius)
+                                                    local score = (angleScore * angleScore) * 0.7 + distancePenalty * 0.3
+                                                    if score > bestSupportScore then
+                                                        bestSupportScore = score
+                                                        bestSupportForWaitingNodeId = existingNodeId
+                                                    end
+                                                end
+                                            end
+                                        end
+                                    end
+                                end
+
+                                if bestSupportForWaitingNodeId ~= -1 then
+                                    loggy("support for waiting node " .. waitingNode.nodeId .. " -> " .. bestSupportForWaitingNodeId, 2)
+                                    CreateLink(teamId, "backbracing", waitingNode.nodeId, bestSupportForWaitingNodeId)
+                                    table.remove(unsupportedNodes, i) -- Aus der Warteliste entfernen
+                                end
+                            end
+						end--]]
+						
+						-- Does not work, looks like snapping is inversed, but i dont want to iterate over all nodes of the player, 
+						-- that seems to be bad, e.g. battleships ...
+                        --[[local finalCandidateId = -1
+                        if bestInternalCandidateId ~= -1 then
+                            finalCandidateId = bestInternalCandidateId
+                            loggy("Found best internal support node " .. finalCandidateId .. " with score " .. string.format("%.3f", bestInternalScore), 2)
+                        else
+                            local snappedNodeId = SnapToNode(newNodePos, teamId, searchRadius)
+                            if snappedNodeId ~= -1 and snappedNodeId ~= newNodeId and snappedNodeId ~= fromNodeId then
+                                if not IsNodeLinkedTo(newNodeId, snappedNodeId) then
+                                    local distance = Magnitude(SubtractVectors(newNodePos, NodePosition(snappedNodeId)))
+                                    if distance > 55 then
+                                        local candidateVector = SubtractVectors(NodePosition(snappedNodeId), newNodePos)
+                                        local angleDiff = math.abs(SignedAngleBetweenVectors(mainLinkVector, candidateVector))
+                                        if angleDiff > 20 and angleDiff < 160 then
+                                            finalCandidateId = snappedNodeId
+                                            loggy("Internal search failed. Found external support node via SnapToNode: " .. finalCandidateId, 2)
+                                        end
+                                    end
+                                end
+							else
+								loggy("Error: No Supporting Node found!", 0)--might happen on open 3++long baselinks
+                            end
+							
                         end
+                        
+                        if finalCandidateId ~= -1 then
+							CreateLink(teamId, "backbracing", newNodeId, finalCandidateId)
+						end--]]
 
                     elseif newNodeId == -4 then
 						LogForPlayer(teamId,"Insufficient Funds for Structure creation")

@@ -5,6 +5,7 @@ dofile(path .. "/scripts/Math.lua")
 local LENGTH_TOLERANCE = 15.0
 local ANGLE_TOLERANCE = 15.0
 local DEVICE_T_TOLERANCE = 0.2
+-- todo increase for HS
 
 function FormatFailureReason(reason, linkDef)
     if not reason or not linkDef then return "Unknown structure error" end
@@ -59,21 +60,21 @@ function CheckStructureWithTeam(teamId, deviceId, structureName, structureDefini
     if success then
         loggy("Structure matched (primary).", 1)
         data.structureName = structureName
-        return true, data, nil
+        return true, data, nil, 1
     else
         loggy("Primary check failed, trying secondary...", 2)
         local success2, data2 = CheckStructure(deviceId, secondaryDef, false)
         if success2 then
             loggy("Structure matched (secondary).", 1)
             data2.structureName = structureName
-            return true, data2, nil
+            return true, data2, nil, 2
         else
             loggy("Secondary also failed.", 1)
             local failureData = {
                 primary = { reason = FormatFailureReason(data.reason, data.failingLinkDef), correctLinkKeys = data.correctLinkKeys, linkMap = data.linkMap },
                 secondary = { reason = FormatFailureReason(data2.reason, data2.failingLinkDef), correctLinkKeys = data2.correctLinkKeys, linkMap = data2.linkMap }
             }
-            return false, nil, failureData
+            return false, nil, failureData, 0
         end
     end
 end

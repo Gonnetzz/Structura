@@ -141,9 +141,15 @@ function ProcessNextDemolitionLayer(conversionId)
 			loggy("Upgrading '" .. deviceuname .. "' (ID "..odeviceid..") to target device '"..targetDevice.."'.", 1)
 			local result = UpgradeDevice(odeviceid, targetDevice)
 			if result < 0 then
-				Log("Error: UpgradeDevice failed with code: " .. result)
+				if result == -7 then
+					LogForPlayer(process.teamId, "Error: Device is inside smoke")
+				elseif result == -1 then
+					LogForPlayer(process.teamId, "Error: Device is missing")
+				else
+					Log("Error: upgrade failed with code: " .. result)
+				end
 			else
-				loggy("Upgrade successful. New device ID: " .. result, 1)
+				loggy("Start upgrade successful. New device ID: " .. result, 1)
 			end
 			--[[
 			if not process.isweapon then

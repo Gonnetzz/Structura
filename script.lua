@@ -37,6 +37,7 @@ upgradeCosts = {
     },
 }
 ResourceDebt = {}
+ConversionOrientation = {}
 
 DEBUG = false
 DEBUG_LEVEL = 3
@@ -125,24 +126,54 @@ function sCreateDevice(teamId, devicename, nodeA, nodeB, t)
 	end
 end
 
-function sUpgradeDevice(deviceId, toname)
+function sUpgradeDevice(deviceId, toname, teamId)
 	local result = UpgradeDevice(deviceId, toname)
 	if result < 0 then
-		Log("Error: upgrade failed with code: " .. result)
+		if result == -7 then
+			LogForPlayer(teamId, "Error: Device is inside smoke")
+		elseif result == -1 then
+			LogForPlayer(teamId, "Error: Device is missing")
+		else
+			Log("Error: upgrade failed with code: " .. result)
+		end
 	else
 		loggy("upgrade successful. New device ID: " .. result, 1)
 	end
 end
 
 function sCreateWeapon(teamId, devicename, nodeA, nodeB, t)
-    local result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
-    if result == -8 then
-        loggy("Error: createweapon busy", 2)
-    elseif result < 0 then
-        Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
+	local linkKey = nodeA < nodeB and (nodeA .. "-" .. nodeB) or (nodeB .. "-" .. nodeA)
+    local flag = ConversionOrientation[linkKey]
+    local result
+
+    if flag then
+        loggy("Using stored orientation flag for placement: " .. (flag == CREATEDEVICEFLAG_PANANGLERIGHT and "RIGHT" or "LEFT"), 1)
+        result = CreateDeviceWithFlags(teamId, "patchgunner", nodeA, nodeB, t, flag, -1)
+    else
+        loggy("No orientation stored for link " .. linkKey .. ", using default placement.", 1)
+        result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
+    end
+    
+    ConversionOrientation[linkKey] = nil
+	
+    --local result = CreateDevice(teamId, "patchgunner", nodeA, nodeB, t)
+	--local result = CreateDeviceWithFlags(teamId, "patchgunner", nodeA, nodeB, t, CREATEDEVICEFLAG_PANANGLELEFT, -1)
+    
+    if result < 0 then
+		if result == -8 then
+			loggy("Error: createweapon busy", 2)-- ignored
+		elseif result == -2 then
+			LogForPlayer(teamId, "Error: Foundation is missing")
+		elseif result == -6 then
+			LogForPlayer(teamId, "Error: Foundation is on fire")
+		elseif result == -11 then
+			LogForPlayer(teamId, "Error: Device is inside smoke")
+		else
+			Log("Error: createweapon failed with code: " .. result .. " " .. devicename)
+		end
     else
         loggy("createweapon successful. New device ID: " .. result, 1)
-        ScheduleCall(0.1, sUpgradeDevice, result, devicename)
+        ScheduleCall(0.1, sUpgradeDevice, result, devicename, teamId)
     end
 end
 
@@ -174,9 +205,33 @@ function OnDeviceCreated(teamId, deviceId, saveName, nodeA, nodeB, t, upgradedId
 end
 
 function HandleStructureConversion(teamId, deviceId, structureName, structureDef, basedevice, targetDevice, isweapon)
-    local success, structureData, failureData = CheckStructureWithTeam(teamId, deviceId, structureName, structureDef)
+	local nodeA = GetDevicePlatformA(deviceId)
+    local nodeB = GetDevicePlatformB(deviceId)
+    if nodeA and nodeB and GetLinkSegmentsOnFire(nodeA, nodeB) > 0 then
+        LogForPlayer(teamId, "Conversion Failed: The base platform is on fire!")
+        RefundFailedConv(teamId, structureName, 0.83, "Base platform on fire")
+		UpgradeDevice(deviceId, basedevice)
+        return
+    end
+	
+    local success, structureData, failureData, definitionUsed = CheckStructureWithTeam(teamId, deviceId, structureName, structureDef)
     if success then
         loggy("Test True: '" .. structureName .. "' structure found.", 2)
+		
+		local linkKey = nodeA < nodeB and (nodeA .. "-" .. nodeB) or (nodeB .. "-" .. nodeA)
+        local sideId = teamId % MAX_SIDES
+        local panRight
+
+        if sideId == 1 then
+            panRight = (definitionUsed == 1)
+        else
+            panRight = (definitionUsed == 2)
+        end
+        
+        local flag = panRight and CREATEDEVICEFLAG_PANANGLERIGHT or CREATEDEVICEFLAG_PANANGLELEFT
+        ConversionOrientation[linkKey] = flag
+        loggy("Stored orientation for link " .. linkKey .. ": " .. (panRight and "RIGHT" or "LEFT"), 1)
+		
         ConvertStructureStart(teamId, deviceId, structureName, structureData, basedevice, targetDevice, isweapon)
     else
         loggy("Test False: Structure does not match '" .. structureName .. "'.", 2)
@@ -230,7 +285,7 @@ function OnDeviceCompleted(teamId, deviceId, saveName)
 
 	local weapon = weaponMap[saveName]
 	if weapon then
-		ScheduleCall(0.1, sUpgradeDevice, deviceId, weapon)
+		ScheduleCall(0.1, sUpgradeDevice, deviceId, weapon, teamId)
 		
 	elseif checkMap[saveName] then
 		local info = checkMap[saveName]
