@@ -1,4 +1,4 @@
-# Archigebra
+# Structura
 Master ur planchbuild
 
 ## Issues, questions, and feedback
