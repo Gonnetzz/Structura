@@ -209,7 +209,10 @@ function CreateStructureFromDefinition(deviceId, structureDefinition, teamId, ex
 						
 						if bestImmediateCandidateId ~= -1 then
                             loggy("support for node " .. newNodeId .. " -> " .. bestImmediateCandidateId, 2)
-							CreateLink(teamId, "backbracing", newNodeId, bestImmediateCandidateId)
+							local result = CreateLink(teamId, "backbracing", newNodeId, bestImmediateCandidateId)
+							if result == -4 then
+								LogForPlayer(teamId,"Insufficient Funds for support structure")
+							end
 						else
                             --table.insert(unsupportedNodes, {nodeId = newNodeId, parentId = fromNodeId, addedAtStep = currentBuildStep})
 						end

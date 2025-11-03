@@ -12,6 +12,9 @@ table.insert(Sprites, ButtonSprite("hud-ecore-icon", "HUD/ECore", nil, ButtonSpr
 table.insert(Sprites, DetailSprite("hud-detail-kcore", "HUD-Details-KCore", path))
 table.insert(Sprites, ButtonSprite("hud-kcore-icon", "HUD/KCore", nil, ButtonSpriteBottom, nil, nil, path))
 
+table.insert(Sprites, ButtonSprite("hud-energy-weapons", "context/EnergyWeapons", nil, nil, nil, nil, path))
+table.insert(Sprites, ButtonSprite("hud-kinetic-weapons", "context/KineticWeapons", nil, nil, nil, nil, path))
+
 table.insert(Sprites, ButtonSprite("hud-upgrade-log", "context/upgradeLog", nil, nil, nil, nil, path))
 table.insert(Sprites, ButtonSprite("hud-upgrade-create", "context/upgradeCreate", nil, nil, nil, nil, path))
 
@@ -20,26 +23,26 @@ local weaponNames = { "laser", "firebeam", "cannon", "cannon20mm", "magnabeam", 
 local upgradeCosts = {
     default = {
         check = { MetalCost = 100, EnergyCost = 1000, BuildDuration = 0.1 },
-        build = { MetalCost = 130, EnergyCost = 760, BuildDuration = 0.1 },
+        build = { MetalCost = 50, EnergyCost = 500, BuildDuration = 0.1 },
         conv  = { MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1 },
     },
     firebeam = {
-        check = { MetalCost = 40, EnergyCost = 2700 },
+        check = { MetalCost = 20, EnergyCost = 1150 },
     },
     laser = {
-        check = { MetalCost = 640, EnergyCost = 5700 },
+        check = { MetalCost = 540, EnergyCost = 4500 },
     },
     magnabeam = {
-		check = { MetalCost = 240, EnergyCost = 4700 },
+		check = { MetalCost = 140, EnergyCost = 3500 },
     },
 	cannon20mm = {
-		check = { MetalCost = 60, EnergyCost = 3550 },
+		check = { MetalCost = 30, EnergyCost = 2350 },
     },
 	cannon = {
-		check = { MetalCost = 360, EnergyCost = 4550 },
+		check = { MetalCost = 260, EnergyCost = 3350 },
     },
 	howitzer = {
-		check = { MetalCost = 460, EnergyCost = 8550 },
+		check = { MetalCost = 360, EnergyCost = 7250 },
     },
 }
 
@@ -119,9 +122,24 @@ function AddUpgradeAndDummy(upgradeList, prefix, weaponName, baseDeviceName)
     local energyCost = costEntry.EnergyCost
 
     local buttonName = (prefix == "conv") and "hud-upgrade-log" or ("hud-" .. prefix .. "-" .. weaponName)
+	
+	-- Overwrite, because all energy weapon use same struct and all kinetic use a diffrent struct 
+	local enabled = false
+    if prefix ~= "conv" then
+        if prefix == "build" then
+            enabled = (weaponName == "laser" or weaponName == "cannon")
+			if weaponName == "laser" then
+				buttonName = "hud-energy-weapons"
+			elseif weaponName == "cannon" then
+				buttonName = "hud-kinetic-weapons"
+			end
+        else
+            enabled = true
+        end
+    end
     
     local upgradeEntry = {
-        Enabled = (prefix ~= "conv"),
+        Enabled = enabled,
         SaveName = prefix .. weaponName,
         MetalCost = metalCost,
         EnergyCost = energyCost,
@@ -263,7 +281,7 @@ testdeviceLogUpgrade.Enabled = false
 testdeviceLogUpgrade.Upgrades = { { Enabled = true, SaveName = "test_device", MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1, Button = "hud-upgrade-log" } }
 table.insert(Devices, testdeviceLogUpgrade)
 
-local ecoreUpgradeBases = { "firebeam", "laser", "magnabeam" }
+local ecoreUpgradeBases = { "laser", "firebeam", "magnabeam" }
 local ecoreupgrades = {}
 
 table.insert(Devices, IndexOfDevice("sandbags") + 1,
@@ -275,10 +293,10 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
     Prerequisite = "factory",
     BuildTimeComplete = 3,
     ScrapPeriod = 2,
-    MetalCost = 200,
-    EnergyCost = 800,
-    MetalRepairCost = 200,
-    EnergyRepairCost = 800,
+    MetalCost = 100,
+    EnergyCost = 400,
+    MetalRepairCost = 20,
+    EnergyRepairCost = 80,
     MetalReclaimMin = 0,
     MetalReclaimMax = 0,
     EnergyReclaimMin = 0,
@@ -292,7 +310,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 })
 
 for _, base in ipairs(ecoreUpgradeBases) do
-    for _, prefix in ipairs({ "check", "build", "conv" }) do
+    for _, prefix in ipairs({ "build", "check", "conv" }) do
         AddUpgradeAndDummy(ecoreupgrades, prefix, base, "ecore")
     end
 end
@@ -309,10 +327,10 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 	Prerequisite = "munitions",
 	BuildTimeComplete = 3,
 	ScrapPeriod = 2,
-	MetalCost = 200,
-	EnergyCost = 800,
-	MetalRepairCost = 200,
-	EnergyRepairCost = 800,
+	MetalCost = 100,
+	EnergyCost = 400,
+	MetalRepairCost = 20,
+	EnergyRepairCost = 80,
 	MetalReclaimMin = 0,
 	MetalReclaimMax = 0,
 	EnergyReclaimMin = 0,
@@ -326,7 +344,7 @@ table.insert(Devices, IndexOfDevice("sandbags") + 1,
 })
 
 for _, base in ipairs(kcoreUpgradeBases) do
-    for _, prefix in ipairs({ "check", "build", "conv" }) do
+    for _, prefix in ipairs({ "build", "check", "conv" }) do
         AddUpgradeAndDummy(kcoreupgrades, prefix, base, "kcore")
     end
 end

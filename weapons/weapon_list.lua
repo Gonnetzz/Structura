@@ -90,6 +90,8 @@ if patchgunner then
 	patchgunner.FileName = path .. "/weapons/tmpgunner.lua"
 	patchgunner.MetalCost = 0
 	patchgunner.EnergyCost = 0
+	patchgunner.HitPoints = 1
+	patchgunner.MaxUpAngle = 90 --too allow t3 or too much shifted basestruts
 	patchgunner.Upgrades = {}
     for _, name in ipairs(upgradeNames) do
         table.insert(patchgunner.Upgrades, {
@@ -112,7 +114,7 @@ for _, name in ipairs(upgradeNames) do
 		
 		local target = string.sub(name, 3)
 		local originalBuildTime = OriginalBuildTimes[target] or 10
-		local upgradeDuration = originalBuildTime - 10
+		local upgradeDuration = originalBuildTime - 40
 		if upgradeDuration < 0.1 then 
 			upgradeDuration = 0.1 
 		end

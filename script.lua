@@ -14,26 +14,26 @@ MaterialCostsAndReclaim = {
 upgradeCosts = {
     default = {
         check = { MetalCost = 100, EnergyCost = 1000, BuildDuration = 0.1 },
-        build = { MetalCost = 130, EnergyCost = 760, BuildDuration = 0.1 },
+        build = { MetalCost = 50, EnergyCost = 500, BuildDuration = 0.1 },
         conv  = { MetalCost = 0, EnergyCost = 0, BuildDuration = 0.1 },
     },
     firebeam = {
-        check = { MetalCost = 40, EnergyCost = 2700 },
+        check = { MetalCost = 20, EnergyCost = 1350 },
     },
     laser = {
-        check = { MetalCost = 640, EnergyCost = 5700 },
+        check = { MetalCost = 540, EnergyCost = 4500 },
     },
     magnabeam = {
-		check = { MetalCost = 240, EnergyCost = 4700 },
+		check = { MetalCost = 140, EnergyCost = 3500 },
     },
 	cannon20mm = {
-		check = { MetalCost = 60, EnergyCost = 3550 },
+		check = { MetalCost = 30, EnergyCost = 2350 },
     },
 	cannon = {
-		check = { MetalCost = 360, EnergyCost = 4550 },
+		check = { MetalCost = 260, EnergyCost = 3350 },
     },
 	howitzer = {
-		check = { MetalCost = 460, EnergyCost = 8550 },
+		check = { MetalCost = 360, EnergyCost = 7250 },
     },
 }
 ResourceDebt = {}
