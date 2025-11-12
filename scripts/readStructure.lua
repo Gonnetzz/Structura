@@ -98,6 +98,26 @@ function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
             if nodeMap[linkDef.from] then
                 local fromNodeId = nodeMap[linkDef.from]
                 local matchFound = false
+				--[[
+				--Debug Links
+				local connectedLinks = {}
+                for i = 0, NodeLinkCount(fromNodeId) - 1 do
+                    local nextNodeId = NodeLinkedNodeId(fromNodeId, i)
+                    local vec = SubtractVectors(NodePosition(nextNodeId), NodePosition(fromNodeId))
+                    local absoluteAngle = SignedAngleBetweenVectors({x=1, y=0}, vec)
+                    local relativeAngle = absoluteAngle - baseAngle
+                    if relativeAngle > 180 then relativeAngle = relativeAngle - 360 end
+                    if relativeAngle < -180 then relativeAngle = relativeAngle + 360 end
+                    
+                    table.insert(connectedLinks, {
+                        nodeA = fromNodeId,
+                        nodeB = nextNodeId,
+                        material = GetLinkMaterialSaveName(fromNodeId, nextNodeId),
+                        length = Magnitude(vec),
+                        relAngle = relativeAngle
+                    })
+                end
+				--]]
                 for i = 0, NodeLinkCount(fromNodeId) - 1 do
                     local nextNodeId = NodeLinkedNodeId(fromNodeId, i)
                     local linkKey = fromNodeId < nextNodeId and (fromNodeId .. "-" .. nextNodeId) or (nextNodeId .. "-" .. fromNodeId)
@@ -111,8 +131,11 @@ function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
 							if relativeAngle > 180 then relativeAngle = relativeAngle - 360 end
                             if relativeAngle < -180 then relativeAngle = relativeAngle + 360 end
 							
+                            local angleDiff = math.abs(relativeAngle - linkDef.angle)
+                            local angularDistance = math.min(angleDiff, 360 - angleDiff)
+
                             if math.abs(Magnitude(vec) - linkDef.length) < LENGTH_TOLERANCE and
-                               math.abs(relativeAngle - linkDef.angle) < ANGLE_TOLERANCE then
+                               angularDistance < ANGLE_TOLERANCE then
                                 
                                 if not nodeMap[linkDef.to] or nodeMap[linkDef.to] == nextNodeId then
                                     nodeMap[linkDef.to] = nextNodeId
@@ -124,7 +147,21 @@ function CheckStructure(deviceId, structureDefinition, partialMatchAllowed)
                         end
                     end
                 end
-                if not matchFound then table.insert(remainingLinks, linkDef) end
+                if not matchFound then 
+					--[[
+					--Debug Links
+					Log(string.format("---- Failed to match def: {from=%s, to=%s, mat=%s, len=%.2f, ang=%.2f} ----",
+                        tostring(linkDef.from), tostring(linkDef.to), linkDef.material, linkDef.length, linkDef.angle))
+                    Log("---- BaseAngle: " .. string.format("%.2f", baseAngle) .. " ----")
+                    Log("---- Checking connected links for physical node " .. tostring(fromNodeId) .. " ----")
+                    for _, link in ipairs(connectedLinks) do
+                        Log(string.format("  -> Link %d-%d, mat=%s, len=%.2f, relAngle=%.2f", 
+                            link.nodeA, link.nodeB, link.material, link.length, link.relAngle))
+                    end
+                    Log("---- End connected links ----")
+					--]]
+					table.insert(remainingLinks, linkDef) 
+				end
             else
                 table.insert(remainingLinks, linkDef)
             end

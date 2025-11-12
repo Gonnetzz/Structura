@@ -50,8 +50,12 @@ function loggy(msg, level)
 end
 
 function LogForPlayer(teamId, msg)
-    if GetLocalTeamId() == teamId then
-        Log(msg)
+    if DEBUG then
+        Log("player: " .. tostring(teamId) .. " " .. msg)
+    else
+        if GetLocalTeamId() == teamId then
+            Log(msg)
+        end
     end
 end
 
